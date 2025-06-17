@@ -24,3 +24,85 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    font-family: var(--font-inter);
+    @apply overflow-x-hidden;
+  }
+}
+
+@layer utilities {
+  .font-playfair {
+    font-family: var(--font-playfair);
+  }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-3px); }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.font-playfair {
+  font-family: var(--font-playfair);
+}
+
+/* Override Tailwind defaults for nav transitions */
+.transition-all {
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 400ms;
+}
+
+/* Custom button glow effect */
+.hover\:shadow-glow:hover {
+  box-shadow: 
+    0 4px 6px -1px rgba(230, 28, 113, 0.2),
+    0 2px 4px -1px rgba(230, 28, 113, 0.1),
+    0 0 0 2px rgba(230, 28, 113, 0.15),
+    0 0 15px rgba(230, 28, 113, 0.3),
+    inset 0 0 10px rgba(230, 28, 113, 0.1);
+}
+
+.hero-container {
+  position: relative;
+}
+
+.hero-container::after {
+  content: '';
+  position: absolute;
+  bottom: -50px;
+  left: 0;
+  right: 0;
+  height: 125px;
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    black 60%,
+    black 40%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    black 60%,
+    black 40%,
+    transparent 100%
+  );
+  background: linear-gradient(
+    45deg,
+    #92c9f1 0%,
+    #b1dffb 30%,
+    #D3E9F8 70%,
+    #ffffff 100%
+  );
+  z-index: 10;
+}
