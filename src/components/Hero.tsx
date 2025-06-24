@@ -52,7 +52,7 @@ const Hero: FC = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.8 }}
           >
-            <a href="#" className="inline-flex items-center gap-2 bg-[#e61c71] text-white px-6 py-3 rounded-lg font-semibold text-base transition-all duration-400 hover:-translate-y-1 hover:shadow-lg hover:shadow-[#e61c71]/30 border-2 border-[#e61c71]/60 relative overflow-hidden group">
+            <a href="/signup" className="inline-flex items-center gap-2 bg-[#e61c71] text-white px-6 py-3 rounded-lg font-semibold text-base transition-all duration-400 hover:-translate-y-1 hover:shadow-lg hover:shadow-[#e61c71]/30 border-2 border-[#e61c71]/60 relative overflow-hidden group">
               <FontAwesomeIcon icon={faMagnifyingGlass} className="w-4 h-4" />
               Get Hired Today
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-500" />
