@@ -18,7 +18,7 @@ export default function Home() {
       </main>
 
       {/* Combined Features and Pricing section */}
-      <section className="relative bg-gradient-to-br from-sky-300 via-blue-50 to-blue-50">
+      <section className="relative bg-white">
         <div className="max-w-[1400px] mx-auto">
           {/* Features */}
           <Features />
