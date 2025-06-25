@@ -30,9 +30,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
       <body>
-        <PricingProvider>
-          {children}
-        </PricingProvider>
+        <PricingProvider>{children}</PricingProvider>
       </body>
     </html>
   );

@@ -1,10 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Inter } from 'next/font/google';
 import { signInWithGoogle } from '../../lib/auth';
+import { useRouter } from 'next/navigation';
+import { supabase } from '../../lib/supabaseClient';
+import { syncUserProfile } from '../../lib/auth';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -14,6 +17,14 @@ export default function SignUp() {
   const [isTransitioning, setIsTransitioning] = useState(false);
   // New state for Register/Login fade
   const [isAuthTransitioning, setIsAuthTransitioning] = useState(false);
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [role, setRole] = useState<'Student' | 'Professional'>('Student');
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
   const handleNext = () => {
     setIsTransitioning(true);
@@ -41,6 +52,124 @@ export default function SignUp() {
       setIsAuthTransitioning(false);
     }, 300);
   };
+
+  // Manual signup handler
+  const handleManualSignup = async () => {
+    setError(null);
+    // ...existing code...
+    if (!fullName || !email || !password || !confirmPassword) {
+      setError('Please fill all fields.');
+      console.log('Signup error: Please fill all fields.');
+      return;
+    }
+    if (password !== confirmPassword) {
+      setError('Passwords do not match.');
+      console.log('Signup error: Passwords do not match.');
+      return;
+    }
+    // If you have any custom email validation, skip it for example.com
+    setLoading(true);
+    const { data, error: signUpError } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { full_name: fullName } },
+    });
+    if (signUpError) {
+      setError(signUpError.message);
+      setLoading(false);
+      console.log('Signup error:', signUpError.message);
+      return;
+    }
+    // Sync user profile in users table
+    if (data.user) {
+      try {
+        await syncUserProfile({
+          id: data.user.id,
+          email: data.user.email ?? null,
+          user_metadata: data.user.user_metadata,
+        }, fullName, role);
+        console.log('Signup successful, user:', data.user);
+        router.push('/dashboard'); // Redirect after signup
+      } catch (err) {
+        setError((err as Error).message || 'Error saving user profile.');
+        console.log('Signup error:', (err as Error).message);
+      }
+    }
+    setLoading(false);
+  };
+
+  // Manual login handler
+  const handleManualLogin = async () => {
+    setError(null);
+    setLoading(true);
+    const { data, error: signInError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    if (signInError) {
+      setError(signInError.message);
+      setLoading(false);
+      console.log('Login error:', signInError.message);
+      return;
+    }
+    if (data.user) {
+      try {
+        await syncUserProfile({
+          id: data.user.id,
+          email: data.user.email ?? null,
+          user_metadata: data.user.user_metadata,
+        });
+        console.log('Login successful, user:', data.user);
+        router.push('/dashboard');
+      } catch (err) {
+        setError((err as Error).message || 'Error syncing user.');
+        console.log('Login error:', (err as Error).message);
+      }
+    }
+    setLoading(false);
+  };
+
+  // Google OAuth handler (after redirect)
+  useEffect(() => {
+    let isMounted = true;
+    const checkGoogleUser = async () => {
+      // If access_token is present in hash, clean it up
+      const hash = window.location.hash;
+      if (hash.includes('access_token')) {
+        window.location.hash = '';
+      }
+      let user = null;
+      let tries = 0;
+      // Wait for Supabase user to be available (sometimes takes a moment after OAuth)
+      while (isMounted && !user && tries < 10) {
+        const { data } = await supabase.auth.getUser();
+        user = data.user;
+        if (!user) {
+          await new Promise(res => setTimeout(res, 300));
+          tries++;
+        }
+      }
+      if (user) {
+        try {
+          await syncUserProfile({
+            id: user.id,
+            email: user.email ?? null,
+            user_metadata: user.user_metadata,
+          });
+          console.log('Google OAuth login successful, user:', user);
+          router.push('/dashboard');
+        } catch (err) {
+          setError((err as Error).message || 'Error syncing Google user.');
+          console.log('Google OAuth error:', (err as Error).message);
+        }
+      } else {
+        setError('Google sign-in failed: user not found.');
+        console.log('Google sign-in failed: user not found.');
+      }
+    };
+    checkGoogleUser();
+    return () => { isMounted = false; };
+  }, [router]);
 
   return (
     <div className={`min-h-screen flex ${inter.className}`}>
@@ -107,6 +236,12 @@ export default function SignUp() {
 
             {/* Dynamic Sign Up Flow */}
             <div className="w-full flex flex-col items-center">
+              {/* Error message display */}
+              {error && (
+                <div className="w-full max-w-xs mb-4 px-4 py-2 bg-red-100 border border-red-300 text-red-700 rounded text-sm text-center">
+                  {error}
+                </div>
+              )}
               <div className={`w-full transition-opacity duration-300 ${isAuthTransitioning ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}> 
                 {isRegister && (
                   <div className="w-full">
@@ -118,11 +253,15 @@ export default function SignUp() {
                           type="text"
                           placeholder="Full Name"
                           className="w-full max-w-xs px-5 py-3 border border-gray-200 rounded-md focus:ring-2 focus:ring-[#e61c71] focus:border-transparent text-base text-gray-900"
+                          value={fullName}
+                          onChange={(e) => setFullName(e.target.value)}
                         />
                         <input
                           type="email"
                           placeholder="Email"
                           className="w-full max-w-xs px-5 py-3 border border-gray-200 rounded-md focus:ring-2 focus:ring-[#e61c71] focus:border-transparent text-base text-gray-900"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
                         />
                         <div className="w-full max-w-xs flex flex-col gap-2">
                           <label className="text-base font-medium text-gray-700 flex items-center gap-1">
@@ -143,8 +282,10 @@ export default function SignUp() {
                               <input
                                 type="radio"
                                 name="userType"
-                                value="student"
+                                value="Student"
                                 className="accent-[#e61c71] h-5 w-5"
+                                checked={role==='Student'}
+                                onChange={() => setRole('Student')}
                               />
                               <span className="ml-2 text-base text-[#e61c71] font-semibold select-none">Student</span>
                             </label>
@@ -152,8 +293,10 @@ export default function SignUp() {
                               <input
                                 type="radio"
                                 name="userType"
-                                value="professional"
+                                value="Professional"
                                 className="accent-[#e61c71] h-5 w-5"
+                                checked={role==='Professional'}
+                                onChange={() => setRole('Professional')}
                               />
                               <span className="ml-2 text-base text-[#e61c71] font-semibold select-none">Professional</span>
                             </label>
@@ -203,11 +346,15 @@ export default function SignUp() {
                             type="password"
                             placeholder="Password"
                             className="w-full max-w-xs px-5 py-3 border border-gray-200 rounded-md focus:ring-2 focus:ring-[#e61c71] focus:border-transparent text-base text-gray-900"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
                           />
                           <input
                             type="password"
                             placeholder="Confirm Password"
                             className="w-full max-w-xs px-5 py-3 border border-gray-200 rounded-md focus:ring-2 focus:ring-[#e61c71] focus:border-transparent text-base text-gray-900"
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
                           />
                         </form>
                         
@@ -226,6 +373,8 @@ export default function SignUp() {
                           </button>
                           <button
                             type="button"
+                            onClick={handleManualSignup}
+                            disabled={loading}
                             className="flex-1 py-3 px-0 rounded-lg bg-[#e61c71] text-white font-semibold text-base border-2 border-[#e61c71]/60 shadow-sm transition-all duration-400 flex items-center justify-center relative overflow-hidden group hover:-translate-y-1 hover:shadow-lg hover:shadow-[#e61c71]/30"
                           >
                             Sign Up
@@ -268,14 +417,20 @@ export default function SignUp() {
                       type="email"
                       placeholder="Email"
                       className="w-full max-w-xs px-5 py-3 border border-gray-200 rounded-md focus:ring-2 focus:ring-[#e61c71] focus:border-transparent text-base text-gray-900"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
                     />
                     <input
                       type="password"
                       placeholder="Password"
                       className="w-full max-w-xs px-5 py-3 border border-gray-200 rounded-md focus:ring-2 focus:ring-[#e61c71] focus:border-transparent text-base text-gray-900"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
                     />
                     <button
                       type="button"
+                      onClick={handleManualLogin}
+                      disabled={loading}
                       className="w-full max-w-xs py-3 rounded-lg bg-[#e61c71] text-white font-semibold text-base mt-2 border-2 border-[#e61c71]/60 shadow-sm transition-all duration-400 flex items-center justify-center text-center relative overflow-hidden group hover:-translate-y-1 hover:shadow-lg hover:shadow-[#e61c71]/30"
                     >
                       Sign In

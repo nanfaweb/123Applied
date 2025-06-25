@@ -48,6 +48,7 @@ const CustomerCarousel = () => {
                   src={`/custs/${num}/logo.png`}
                   alt={`Company ${num} logo`}
                   fill
+                  sizes="96px"
                   className="object-contain transition-transform duration-300 hover:drop-shadow-[0_0_15px_rgba(255,255,255,0.7)]"
                 />
               </div>
@@ -57,6 +58,7 @@ const CustomerCarousel = () => {
                   src={`/custs/${num}/${num}.jpg`}
                   alt={`Customer ${num}`}
                   fill
+                  sizes="80px"
                   className="object-cover transition-transform duration-300 hover:drop-shadow-[0_0_15px_rgba(255,255,255,0.7)]"
                 />
               </div>

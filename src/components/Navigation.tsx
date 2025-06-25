@@ -31,6 +31,7 @@ const Navigation: FC = () => {
               src="/mascot.png"
               alt="Applied Mascot"
               fill
+              sizes="40px"
               priority
               className="object-contain rounded-lg animate-float"
             />
