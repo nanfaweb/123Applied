@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Inter } from 'next/font/google';
 import { useRouter } from 'next/navigation';
+import { supabase } from '../../../lib/supabaseClient';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -21,6 +22,7 @@ export default function SignUp() {
   const [role, setRole] = useState<'Student' | 'Professional'>('Student');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [googleAttempted, setGoogleAttempted] = useState(false);
   const router = useRouter();
 
   const handleNext = () => {
@@ -43,6 +45,8 @@ export default function SignUp() {
   const handleAuthToggle = (register: boolean) => {
     if (isRegister === register) return;
     setIsAuthTransitioning(true);
+    setError(null); // Clear error when toggling
+    setGoogleAttempted(false);
     setTimeout(() => {
       setIsRegister(register);
       setCurrentStep(1); // Reset to step 1 on toggle
@@ -50,10 +54,17 @@ export default function SignUp() {
     }, 300);
   };
 
+  // Clear error on mount
+  useEffect(() => {
+    setError(null);
+  }, []);
+
+  // Clear googleAttempted on mount
+  useEffect(() => { setGoogleAttempted(false); }, []);
+
   // Manual signup handler
   const handleManualSignup = async () => {
     setError(null);
-    // ...existing code...
     if (!fullName || !email || !password || !confirmPassword) {
       setError('Please fill all fields.');
       return;
@@ -62,18 +73,56 @@ export default function SignUp() {
       setError('Passwords do not match.');
       return;
     }
-    // If you have any custom email validation, skip it for example.com
     setLoading(true);
-    // Supabase signup logic removed. File retained for reference.
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { full_name: fullName, role },
+      },
+    });
     setLoading(false);
+    if (error) {
+      setError(error.message);
+      return;
+    }
+    router.push('/dashboard');
   };
 
   // Manual login handler
   const handleManualLogin = async () => {
     setError(null);
+    if (!email || !password) {
+      setError('Please enter both email and password.');
+      return;
+    }
     setLoading(true);
-    // Supabase login logic removed. File retained for reference.
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
+    if (error) {
+      if (error.message === 'Invalid login credentials') {
+        setError('Your email or password is incorrect. Please try again.');
+        return;
+      }
+      if (error.message === 'User not found' || error.message === 'Account does not exist') {
+        setError("We couldn't find an account with that email. Please check your details or sign up.");
+        return;
+      }
+      setError('Unable to sign in. Please check your details and try again.');
+      return;
+    }
+    router.push('/dashboard');
+  };
+
+  // Google signup handler
+  const handleGoogleSignup = async () => {
+    setLoading(true);
+    setGoogleAttempted(true);
+    const { error } = await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: `${window.location.origin}/dashboard` } });
+    setLoading(false);
+    if (error) {
+      setError(error.message);
+    }
   };
 
   // Google OAuth handler (after redirect)
@@ -103,13 +152,13 @@ export default function SignUp() {
         } catch (err) {
           setError((err as Error).message || 'Error syncing Google user.');
         }
-      } else {
+      } else if (googleAttempted) {
         setError('Google sign-in failed: user not found.');
       }
     };
     checkGoogleUser();
     return () => { isMounted = false; };
-  }, [router]);
+  }, [router, googleAttempted]);
 
   return (
     <div className={`min-h-screen flex ${inter.className}`}>
@@ -265,7 +314,7 @@ export default function SignUp() {
                         <button
                           type="button"
                           className="w-full max-w-xs mx-auto flex items-center justify-center border border-gray-300 rounded-md bg-white text-gray-700 font-normal text-sm h-10 transition-all duration-300 ease-in-out hover:bg-[#f8e7f0] hover:border-[#e61c71] hover:shadow-lg hover:scale-105 focus:ring-2 focus:ring-[#e61c71] focus:outline-none"
-                          onClick={() => alert('Google sign-in is currently unavailable.')}
+                          onClick={handleGoogleSignup}
                         >
                           <svg className="w-4 h-4 mr-3" viewBox="0 0 24 24">
                             <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
@@ -336,7 +385,7 @@ export default function SignUp() {
                         <button
                           type="button"
                           className="w-full max-w-xs mx-auto flex items-center justify-center border border-gray-300 rounded-md bg-white text-gray-700 font-normal text-sm h-10 transition-all duration-300 ease-in-out hover:bg-[#f8e7f0] hover:border-[#e61c71] hover:shadow-lg hover:scale-105 focus:ring-2 focus:ring-[#e61c71] focus:outline-none"
-                          onClick={() => alert('Google sign-in is currently unavailable.')}
+                          onClick={handleGoogleSignup}
                         >
                           <svg className="w-4 h-4 mr-3" viewBox="0 0 24 24">
                             <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
@@ -389,7 +438,7 @@ export default function SignUp() {
                     <button
                       type="button"
                       className="w-full max-w-xs mx-auto flex items-center justify-center border border-gray-300 rounded-md bg-white text-gray-700 font-normal text-sm h-10 transition-all duration-300 ease-in-out hover:bg-[#f8e7f0] hover:border-[#e61c71] hover:shadow-lg hover:scale-105 focus:ring-2 focus:ring-[#e61c71] focus:outline-none"
-                      onClick={() => alert('Google sign-in is currently unavailable.')}
+                      onClick={handleGoogleSignup}
                     >
                       <svg className="w-4 h-4 mr-3" viewBox="0 0 24 24">
                         <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />

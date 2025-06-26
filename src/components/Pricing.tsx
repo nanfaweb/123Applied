@@ -2,7 +2,7 @@
 
 import { FC } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { usePricing } from '@/context/PricingContext'
+import { usePricing } from '../context/PricingContext'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faGraduationCap, faBriefcase } from '@fortawesome/free-solid-svg-icons'
 

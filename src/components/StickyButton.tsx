@@ -2,7 +2,7 @@
 
 import { FC, useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { usePricing } from '@/context/PricingContext'
+import { usePricing } from '../context/PricingContext'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons'
 
