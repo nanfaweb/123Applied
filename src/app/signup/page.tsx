@@ -4,10 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Inter } from 'next/font/google';
-import { signInWithGoogle } from '../../lib/auth';
 import { useRouter } from 'next/navigation';
-import { supabase } from '../../lib/supabaseClient';
-import { syncUserProfile } from '../../lib/auth';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -59,42 +56,15 @@ export default function SignUp() {
     // ...existing code...
     if (!fullName || !email || !password || !confirmPassword) {
       setError('Please fill all fields.');
-      console.log('Signup error: Please fill all fields.');
       return;
     }
     if (password !== confirmPassword) {
       setError('Passwords do not match.');
-      console.log('Signup error: Passwords do not match.');
       return;
     }
     // If you have any custom email validation, skip it for example.com
     setLoading(true);
-    const { data, error: signUpError } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { data: { full_name: fullName } },
-    });
-    if (signUpError) {
-      setError(signUpError.message);
-      setLoading(false);
-      console.log('Signup error:', signUpError.message);
-      return;
-    }
-    // Sync user profile in users table
-    if (data.user) {
-      try {
-        await syncUserProfile({
-          id: data.user.id,
-          email: data.user.email ?? null,
-          user_metadata: data.user.user_metadata,
-        }, fullName, role);
-        console.log('Signup successful, user:', data.user);
-        router.push('/dashboard'); // Redirect after signup
-      } catch (err) {
-        setError((err as Error).message || 'Error saving user profile.');
-        console.log('Signup error:', (err as Error).message);
-      }
-    }
+    // Supabase signup logic removed. File retained for reference.
     setLoading(false);
   };
 
@@ -102,30 +72,7 @@ export default function SignUp() {
   const handleManualLogin = async () => {
     setError(null);
     setLoading(true);
-    const { data, error: signInError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    if (signInError) {
-      setError(signInError.message);
-      setLoading(false);
-      console.log('Login error:', signInError.message);
-      return;
-    }
-    if (data.user) {
-      try {
-        await syncUserProfile({
-          id: data.user.id,
-          email: data.user.email ?? null,
-          user_metadata: data.user.user_metadata,
-        });
-        console.log('Login successful, user:', data.user);
-        router.push('/dashboard');
-      } catch (err) {
-        setError((err as Error).message || 'Error syncing user.');
-        console.log('Login error:', (err as Error).message);
-      }
-    }
+    // Supabase login logic removed. File retained for reference.
     setLoading(false);
   };
 
@@ -142,8 +89,8 @@ export default function SignUp() {
       let tries = 0;
       // Wait for Supabase user to be available (sometimes takes a moment after OAuth)
       while (isMounted && !user && tries < 10) {
-        const { data } = await supabase.auth.getUser();
-        user = data.user;
+        // Supabase user fetching logic removed. File retained for reference.
+        user = null; // Placeholder, replace with actual user fetching logic
         if (!user) {
           await new Promise(res => setTimeout(res, 300));
           tries++;
@@ -151,20 +98,13 @@ export default function SignUp() {
       }
       if (user) {
         try {
-          await syncUserProfile({
-            id: user.id,
-            email: user.email ?? null,
-            user_metadata: user.user_metadata,
-          });
-          console.log('Google OAuth login successful, user:', user);
+          // Supabase user profile syncing logic removed. File retained for reference.
           router.push('/dashboard');
         } catch (err) {
           setError((err as Error).message || 'Error syncing Google user.');
-          console.log('Google OAuth error:', (err as Error).message);
         }
       } else {
         setError('Google sign-in failed: user not found.');
-        console.log('Google sign-in failed: user not found.');
       }
     };
     checkGoogleUser();
@@ -321,11 +261,11 @@ export default function SignUp() {
                           </div>
                         </div>
 
-                        {/* Google Button */}
+                        {/* Google Button (restored, non-functional) */}
                         <button
                           type="button"
                           className="w-full max-w-xs mx-auto flex items-center justify-center border border-gray-300 rounded-md bg-white text-gray-700 font-normal text-sm h-10 transition-all duration-300 ease-in-out hover:bg-[#f8e7f0] hover:border-[#e61c71] hover:shadow-lg hover:scale-105 focus:ring-2 focus:ring-[#e61c71] focus:outline-none"
-                          onClick={signInWithGoogle}
+                          onClick={() => alert('Google sign-in is currently unavailable.')}
                         >
                           <svg className="w-4 h-4 mr-3" viewBox="0 0 24 24">
                             <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
@@ -392,11 +332,11 @@ export default function SignUp() {
                           </div>
                         </div>
 
-                        {/* Google Button */}
+                        {/* Google Button (restored, non-functional) */}
                         <button
                           type="button"
                           className="w-full max-w-xs mx-auto flex items-center justify-center border border-gray-300 rounded-md bg-white text-gray-700 font-normal text-sm h-10 transition-all duration-300 ease-in-out hover:bg-[#f8e7f0] hover:border-[#e61c71] hover:shadow-lg hover:scale-105 focus:ring-2 focus:ring-[#e61c71] focus:outline-none"
-                          onClick={signInWithGoogle}
+                          onClick={() => alert('Google sign-in is currently unavailable.')}
                         >
                           <svg className="w-4 h-4 mr-3" viewBox="0 0 24 24">
                             <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
@@ -445,11 +385,11 @@ export default function SignUp() {
                         <span className="px-3 bg-white text-gray-500">Or continue with</span>
                       </div>
                     </div>
-                    {/* Google Button */}
+                    {/* Google Button (restored, non-functional) */}
                     <button
                       type="button"
                       className="w-full max-w-xs mx-auto flex items-center justify-center border border-gray-300 rounded-md bg-white text-gray-700 font-normal text-sm h-10 transition-all duration-300 ease-in-out hover:bg-[#f8e7f0] hover:border-[#e61c71] hover:shadow-lg hover:scale-105 focus:ring-2 focus:ring-[#e61c71] focus:outline-none"
-                      onClick={signInWithGoogle}
+                      onClick={() => alert('Google sign-in is currently unavailable.')}
                     >
                       <svg className="w-4 h-4 mr-3" viewBox="0 0 24 24">
                         <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
