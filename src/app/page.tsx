@@ -5,6 +5,7 @@ import Pricing from "../components/Pricing";
 import Footer from "../components/Footer";
 import StickyButton from "../components/StickyButton";
 import CustomerCarousel from "../components/CustomerCarousel";
+import LandingSection from "../components/LandingSection";
 
 export default function Home() {
   return (
@@ -27,7 +28,7 @@ export default function Home() {
           <Pricing />
         </div>
       </section>
-
+      <LandingSection />
       {/* Footer */}
       <Footer />
 

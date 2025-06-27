@@ -96,7 +96,7 @@ export default function DashboardPage() {
         <header className="bg-white border-b border-gray-100 px-8 py-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Welcome back, Afnan! 👋</h1>
+              <h1 className="text-3xl font-bold text-gray-900">Welcome back, Afnan </h1>
               <p className="text-gray-600 mt-1">Track your job applications and manage your career journey</p>
             </div>
             <div className="flex items-center gap-3">
@@ -104,7 +104,7 @@ export default function DashboardPage() {
                 <p className="text-sm font-medium text-gray-900">Today</p>
                 <p className="text-xs text-gray-500">Friday, June 27</p>
               </div>
-              <Calendar className="w-5 h-5 text-gray-400" />
+              
             </div>
           </div>
         </header>

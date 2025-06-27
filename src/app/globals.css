@@ -106,3 +106,14 @@ body {
   );
   z-index: 10;
 }
+
+
+.fade-in-up {
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+}
+
+.opacity-0 {
+  opacity: 0;
+  transform: translateY(30px);
+}
