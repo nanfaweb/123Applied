@@ -1,7 +1,5 @@
 "use client";
 
-import "keen-slider/keen-slider.min.css";
-import { useKeenSlider } from "keen-slider/react";
 import Image from "next/image";
 import { useEffect, useRef } from "react";
 
@@ -13,7 +11,7 @@ const cardImages = [
   "/cards/card5.jpg",
 ];
 
-// 👇 helper to animate on scroll (fade in)
+// 🔽 Fade-in on scroll hook
 const useFadeInOnScroll = () => {
   const ref = useRef<HTMLDivElement | null>(null);
 
@@ -27,9 +25,7 @@ const useFadeInOnScroll = () => {
           el.classList.add("fade-in-up");
         }
       },
-      {
-        threshold: 0.2,
-      }
+      { threshold: 0.2 }
     );
 
     observer.observe(el);
@@ -40,13 +36,6 @@ const useFadeInOnScroll = () => {
 };
 
 export default function LandingSection() {
-  const [sliderRef] = useKeenSlider<HTMLDivElement>({
-    slides: {
-      perView: 2.5,
-      spacing: 16,
-    },
-  });
-
   const headingRef = useFadeInOnScroll();
   const carouselRef = useFadeInOnScroll();
   const imageRef = useFadeInOnScroll();
@@ -56,38 +45,37 @@ export default function LandingSection() {
       {/* 🔥 Heading */}
       <h2
         ref={headingRef}
-        className="opacity-0 text-4xl font-bold text-gray-800 mb-10 transition-all duration-700"
+        className="fade-hidden text-4xl font-bold text-gray-800 mb-10 transition-all duration-700 font-playfair"
       >
         Our Recent Hires
       </h2>
 
-      {/* 🔁 Carousel */}
+      {/* 🔁 Auto-scrolling Carousel */}
       <div
-        ref={(node) => {
-          carouselRef.current = node;
-          if (sliderRef) sliderRef(node);
-        }}
-        className="keen-slider w-full max-w-6xl mb-10 opacity-0 transition-all duration-700"
+        ref={carouselRef}
+        className="w-full overflow-hidden mb-10 fade-hidden transition-all duration-700"
       >
-        {cardImages.map((src, index) => (
-          <div
-            key={index}
-            className="keen-slider__slide relative h-[13.5rem] rounded-xl overflow-hidden shadow-md"
-          >
-            <Image
-              src={src}
-              alt={`Card ${index + 1}`}
-              fill
-              className="object-cover"
-            />
-          </div>
-        ))}
+        <div className="flex w-max animate-scroll-left gap-4">
+          {[...cardImages, ...cardImages].map((src, index) => (
+            <div
+              key={index}
+              className="relative h-[160px] w-[280px] rounded-xl overflow-hidden shadow-md flex-shrink-0"
+            >
+              <Image
+                src={src}
+                alt={`Card ${index + 1}`}
+                fill
+                className="object-cover"
+              />
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* 📊 Dashboard Image */}
       <div
         ref={imageRef}
-        className="w-full max-w-5xl h-[60vh] relative opacity-0 transition-all duration-700"
+        className="w-full max-w-5xl h-[50vh] relative opacity-0 transition-all duration-700"
       >
         <Image
           src="/dashboardimg.png"

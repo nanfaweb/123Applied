@@ -108,12 +108,31 @@ body {
 }
 
 
-.fade-in-up {
-  opacity: 1 !important;
-  transform: translateY(0) !important;
-}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-.opacity-0 {
-  opacity: 0;
-  transform: translateY(30px);
+@layer utilities {
+  .fade-in-up {
+    opacity: 1 !important;
+    transform: translateY(0) !important;
+  }
+
+  .fade-hidden {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+
+  @keyframes scroll-left {
+    0% {
+      transform: translateX(0%);
+    }
+    100% {
+      transform: translateX(-50%);
+    }
+  }
+
+  .animate-scroll-left {
+    animation: scroll-left 30s linear infinite;
+  }
 }

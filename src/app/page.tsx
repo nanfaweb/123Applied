@@ -6,6 +6,8 @@ import Footer from "../components/Footer";
 import StickyButton from "../components/StickyButton";
 import CustomerCarousel from "../components/CustomerCarousel";
 import LandingSection from "../components/LandingSection";
+import SpecialitiesSection from "../components/SpecialitiesSection";
+
 
 export default function Home() {
   return (
@@ -29,6 +31,7 @@ export default function Home() {
         </div>
       </section>
       <LandingSection />
+      <SpecialitiesSection />
       {/* Footer */}
       <Footer />
 
