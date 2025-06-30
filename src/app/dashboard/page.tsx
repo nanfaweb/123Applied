@@ -8,8 +8,7 @@ import {
   MessageCircle, 
   CreditCard, 
   Settings, 
-  Filter, 
-  Edit,
+  Filter,
   Upload,
   MapPin,
   Building2,
@@ -87,7 +86,13 @@ const Dashboard = () => {
     { company: 'Google', count: 12 },
     { company: 'Microsoft', count: 7 },
     { company: 'Apple', count: 15 },
-    { company: 'Amazon', count: 9 }
+    { company: 'Amazon', count: 9 },
+    { company: 'Meta', count: 8 },
+    { company: 'Netflix', count: 6 },
+    { company: 'Tesla', count: 10 },
+    { company: 'Adobe', count: 5 },
+    { company: 'Salesforce', count: 4 },
+    { company: 'IBM', count: 3 }
   ];
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -196,7 +201,7 @@ const Dashboard = () => {
             >
               <div className="flex items-center space-x-3">
                 <User size={20} />
-                <span className="font-medium">Afnan</span>
+                <span className="font-medium">Ali</span>
               </div>
               <ChevronDown size={16} className={`transition-transform duration-200 ${userDropdownOpen ? 'rotate-180' : ''}`} />
             </button>
@@ -299,10 +304,7 @@ const Dashboard = () => {
                         <span className="ml-2">Connect LinkedIn</span>
                       </h3>
                       <div className="text-center">
-                        <div className="w-12 h-12 bg-[#e61c71] rounded-lg flex items-center justify-center mx-auto mb-3">
-                          <LinkedInIcon />
-                        </div>
-                        <p className="text-sm text-gray-600 mb-3">Import professional info</p>
+                        <p className="text-sm text-gray-600 mb-3 mt-16">Import professional info</p>
                         <button
                           onClick={handleLinkedInConnect}
                           className="inline-flex items-center px-4 py-2 bg-[#e61c71] text-white text-sm rounded-lg hover:bg-pink-600 transition-all duration-200 transform hover:scale-105"
@@ -375,7 +377,8 @@ const Dashboard = () => {
                       <Building2 size={18} className="text-[#e61c71] mr-2" />
                       <h3 className="text-base font-semibold text-gray-800">Preferred Companies</h3>
                     </div>
-                    <div className="space-y-3">
+                    <div className={`space-y-3 ${preferredCompanies.length > 4 ? 'max-h-52 overflow-y-auto pr-2' : ''}`}
+                      style={{ scrollbarWidth: 'thin', scrollbarColor: '#e61c71 #f3f4f6' }}>
                       {preferredCompanies.map((company, index) => (
                         <div key={index} className="flex justify-between items-center hover:bg-gray-50 p-2 rounded transition-colors">
                           <span className="text-sm text-gray-700">{index + 1}. {company.company}</span>
@@ -388,7 +391,7 @@ const Dashboard = () => {
                   </div>
 
                   {/* Support Section - Button Bottom Left, Centered Text (Chat) */}
-                  <div className="bg-gradient-to-br from-pink-500 via-[#e61c71] to-pink-400 rounded-2xl p-6 text-white shadow-lg animate-in fade-in slide-in-from-bottom-4 duration-700 delay-400 min-h-[245px] flex flex-col justify-between relative overflow-hidden">
+                  <div className="bg-gradient-to-br from-pink-500 via-[#e61c71] to-pink-400 rounded-2xl p-6 text-white shadow-lg animate-in fade-in slide-in-from-bottom-4 duration-700 delay-400 min-h-[235px] flex flex-col justify-between relative overflow-hidden">
                     {/* Decorative chat icon */}
                     <div className="absolute right-6 bottom-6 opacity-20 text-white pointer-events-none select-none">
                       <MessageCircle size={80} />
@@ -416,11 +419,11 @@ const Dashboard = () => {
             <>
               {/* Application Tracker Header */}
               <div className="flex justify-between items-center mb-6 animate-in slide-in-from-top-4 duration-500">
-                <h1 className="text-2xl font-bold text-gray-800 flex items-center">
+                <h1 className="text-4xl font-bold text-gray-800 flex items-center font-playfair italic">
                   <FileText size={24} className="mr-2 text-[#e61c71]" />
                   Application Tracker
                 </h1>
-                <button className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all duration-200 transform hover:scale-105">
+                <button className="flex items-center space-x-2 px-4 py-2 bg-[#e61c71] text-white rounded-lg hover:bg-pink-600 transition-all duration-200 transform hover:scale-105 font-semibold">
                   <Filter size={16} />
                   <span>Filter</span>
                 </button>
@@ -436,7 +439,6 @@ const Dashboard = () => {
                         <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 uppercase">Company</th>
                         <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 uppercase">Date Applied</th>
                         <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 uppercase">Status</th>
-                        <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 uppercase">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
@@ -449,12 +451,6 @@ const Dashboard = () => {
                             <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(app.status)}`}>
                               {app.status}
                             </span>
-                          </td>
-                          <td className="px-6 py-4">
-                            <button className="text-[#e61c71] hover:text-pink-700 text-sm font-medium flex items-center transition-colors">
-                              <Edit size={14} className="mr-1" />
-                              {app.actions}
-                            </button>
                           </td>
                         </tr>
                       ))}
