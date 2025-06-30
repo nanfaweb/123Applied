@@ -25,6 +25,15 @@ const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [filterStatus, setFilterStatus] = useState('');
+  const [filterCompany, setFilterCompany] = useState('');
+  const [filterTitle, setFilterTitle] = useState('');
+  const [filterSalary, setFilterSalary] = useState('');
+  const [filterDate, setFilterDate] = useState('');
+  const [profilePic, setProfilePic] = useState<string | null>(null);
+  const [fullName, setFullName] = useState('Ali');
+  const [email] = useState('ali@example.com');
 
   // Close dropdown when clicking outside
   React.useEffect(() => {
@@ -54,7 +63,8 @@ const Dashboard = () => {
       company: 'ABC Corp',
       dateApplied: '04/11/2024',
       status: 'Submitted',
-      actions: 'Edit'
+      actions: 'Edit',
+      salary: 'USD 120,000'
     },
     {
       id: 2,
@@ -62,15 +72,17 @@ const Dashboard = () => {
       company: 'XYZ Inc.',
       dateApplied: '06/11/2024',
       status: 'In Review',
-      actions: 'Edit'
+      actions: 'Edit',
+      salary: 'USD 110,000'
     },
     {
       id: 3,
       jobTitle: 'Data Analyst',
       company: 'Example Co.',
-      dateApplied: '04/11/2024',
+      dateApplied: '04/11/2025',
       status: 'Submitted',
-      actions: 'Edit'
+      actions: 'Edit',
+      salary: null
     }
   ];
 
@@ -129,6 +141,105 @@ const Dashboard = () => {
     </svg>
   );
 
+  const filteredApplications = applications.filter(app => {
+    const statusMatch = filterStatus ? app.status.toLowerCase().includes(filterStatus.toLowerCase()) : true;
+    const companyMatch = filterCompany ? app.company.toLowerCase().includes(filterCompany.toLowerCase()) : true;
+    const titleMatch = filterTitle ? app.jobTitle.toLowerCase().includes(filterTitle.toLowerCase()) : true;
+    const salaryMatch = filterSalary ? (app.salary && app.salary.replace(/[^0-9]/g, '').includes(filterSalary.replace(/[^0-9]/g, ''))) : true;
+    const dateMatch = filterDate
+      ? (app.dateApplied && app.dateApplied.replace(/\s+/g, '').toLowerCase().includes(filterDate.replace(/\s+/g, '').toLowerCase()))
+      : true;
+    return statusMatch && companyMatch && titleMatch && salaryMatch && dateMatch;
+  });
+
+  // Custom handler for date input to auto-insert slashes
+  const handleDateInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value.replace(/[^0-9]/g, ''); // Only digits
+    if (value.length > 2) value = value.slice(0, 2) + '/' + value.slice(2);
+    if (value.length > 5) value = value.slice(0, 5) + '/' + value.slice(5, 9);
+    setFilterDate(value.slice(0, 10));
+  };
+
+  const handleProfilePicUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProfilePic(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleDeleteAccount = () => {
+    if (window.confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+      // Add account deletion logic here
+      alert('Account deleted');
+    }
+  };
+
+  const handleLogout = () => {
+    // Add logout logic here
+    alert('Logged out');
+  };
+
+  const [topRoles, setTopRoles] = useState<string[]>([]);
+  const [topCompanies, setTopCompanies] = useState<string[]>([]);
+  const [topLocations, setTopLocations] = useState<string[]>([]);
+
+  const PreferenceList = ({ items, setItems, placeholder, maxItems }: { items: string[], setItems: (items: string[]) => void, placeholder: string, maxItems: number }) => {
+    const [input, setInput] = useState('');
+    const handleAdd = () => {
+      const trimmed = input.trim();
+      if (trimmed && !items.includes(trimmed) && items.length < maxItems) {
+        setItems([...items, trimmed]);
+        setInput('');
+      }
+    };
+    const handleRemove = (idx: number) => {
+      setItems(items.filter((_, i) => i !== idx));
+    };
+    return (
+      <div>
+        <div className="flex gap-2 mb-2">
+          <input
+            type="text"
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            placeholder={placeholder}
+            className="border border-gray-300 rounded px-3 py-2 text-sm w-full focus:outline-none focus:ring-2 focus:ring-pink-200 text-gray-800"
+            onKeyDown={e => { if (e.key === 'Enter') handleAdd(); }}
+            disabled={items.length >= maxItems}
+          />
+          <button
+            type="button"
+            className={`px-3 py-2 rounded bg-[#e61c71] text-white font-semibold hover:bg-pink-600 transition ${items.length >= maxItems || !input.trim() ? 'opacity-50 cursor-not-allowed' : ''}`}
+            onClick={handleAdd}
+            disabled={items.length >= maxItems || !input.trim()}
+          >
+            Add
+          </button>
+        </div>
+        <ul className="flex flex-wrap gap-2">
+          {items.map((item, idx) => (
+            <li key={idx} className="bg-pink-100 text-[#e61c71] px-3 py-1 rounded-full flex items-center text-sm font-medium">
+              {item}
+              <button
+                type="button"
+                className="ml-2 text-pink-600 hover:text-pink-900 focus:outline-none"
+                onClick={() => handleRemove(idx)}
+                aria-label={`Remove ${item}`}
+              >
+                ×
+              </button>
+            </li>
+          ))}
+        </ul>
+        <div className="text-xs text-gray-500 mt-1">{items.length} / {maxItems} allowed</div>
+      </div>
+    );
+  };
+
   return (
     <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
@@ -181,11 +292,6 @@ const Dashboard = () => {
               <CreditCard size={20} />
               <span>Billing</span>
             </button>
-            
-            <button type="button" className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left text-gray-600 hover:bg-pink-50 transition-all duration-200 transform hover:scale-105">
-              <Settings size={20} />
-              <span>Settings</span>
-            </button>
           </div>
         </nav>
         
@@ -207,9 +313,11 @@ const Dashboard = () => {
             </button>
             {userDropdownOpen && (
               <div id="user-dropdown-menu" className="absolute bottom-full mb-2 left-0 w-full bg-white rounded-lg shadow-lg border animate-in slide-in-from-bottom-2 duration-200 z-50">
-                <button type="button" className="w-full flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-t-lg transition-colors">
-                  <User size={16} />
-                  <span>Profile</span>
+                <button type="button" className="w-full flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-t-lg transition-colors"
+                  onClick={() => setActiveTab('settings')}
+                >
+                  <Settings size={16} />
+                  <span>Settings</span>
                 </button>
                 <button type="button" className="w-full flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-b-lg transition-colors border-t">
                   <LogOut size={16} />
@@ -252,7 +360,7 @@ const Dashboard = () => {
                         </div>
                         <div className="text-sm text-black">Applications Submitted</div>
                         <div className="text-lg font-semibold text-black mt-1">
-                          {((stats.submitted / stats.totalApplications) * 100).toFixed(0)}% Complete
+                          {((stats.submitted / stats.totalApplications) * 100).toFixed(0)}% Completed
                         </div>
                       </div>
                     </div>
@@ -355,9 +463,17 @@ const Dashboard = () => {
                 <div className="space-y-6">
                   {/* Preferred Locations */}
                   <div className="bg-white rounded-xl shadow-sm p-6 animate-in fade-in slide-in-from-right-4 duration-700 delay-300">
-                    <div className="flex items-center mb-4">
-                      <MapPin size={18} className="text-[#e61c71] mr-2" />
-                      <h3 className="text-base font-semibold text-gray-800">Preferred Locations</h3>
+                    <div className="flex items-center mb-4 justify-between">
+                      <div className="flex items-center">
+                        <MapPin size={18} className="text-[#e61c71] mr-2" />
+                        <h3 className="text-base font-semibold text-gray-800">Preferred Locations</h3>
+                      </div>
+                      <button
+                        className="text-[#e61c71] hover:text-pink-700 text-sm font-medium flex items-center transition-colors mr-2"
+                        type="button"
+                      >
+                        Edit
+                      </button>
                     </div>
                     <div className="space-y-3">
                       {preferredLocations.map((location, index) => (
@@ -373,9 +489,17 @@ const Dashboard = () => {
 
                   {/* Preferred Companies */}
                   <div className="bg-white rounded-xl shadow-sm p-6 animate-in fade-in slide-in-from-right-4 duration-700 delay-400">
-                    <div className="flex items-center mb-4">
-                      <Building2 size={18} className="text-[#e61c71] mr-2" />
-                      <h3 className="text-base font-semibold text-gray-800">Preferred Companies</h3>
+                    <div className="flex items-center mb-4 justify-between">
+                      <div className="flex items-center">
+                        <Building2 size={18} className="text-[#e61c71] mr-2" />
+                        <h3 className="text-base font-semibold text-gray-800">Preferred Companies</h3>
+                      </div>
+                      <button
+                        className="text-[#e61c71] hover:text-pink-700 text-sm font-medium flex items-center transition-colors mr-2"
+                        type="button"
+                      >
+                        Edit
+                      </button>
                     </div>
                     <div className={`space-y-3 ${preferredCompanies.length > 4 ? 'max-h-52 overflow-y-auto pr-2' : ''}`}
                       style={{ scrollbarWidth: 'thin', scrollbarColor: '#e61c71 #f3f4f6' }}>
@@ -423,11 +547,75 @@ const Dashboard = () => {
                   <FileText size={24} className="mr-2 text-[#e61c71]" />
                   Application Tracker
                 </h1>
-                <button className="flex items-center space-x-2 px-4 py-2 bg-[#e61c71] text-white rounded-lg hover:bg-pink-600 transition-all duration-200 transform hover:scale-105 font-semibold">
+                <button
+                  className="flex items-center space-x-2 px-4 py-2 bg-[#e61c71] text-white rounded-lg hover:bg-pink-600 transition-all duration-200 transform hover:scale-105 font-semibold"
+                  onClick={() => setFilterOpen((prev) => !prev)}
+                >
                   <Filter size={16} />
                   <span>Filter</span>
                 </button>
               </div>
+              {filterOpen && (
+                <div className="mb-6 bg-white rounded-lg shadow p-4 flex flex-wrap gap-4 animate-in fade-in slide-in-from-top-4 duration-300">
+                  <div className="flex flex-col">
+                    <label className="text-gray-800 text-xs font-semibold mb-1">Company</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Google, Microsoft"
+                      value={filterCompany}
+                      onChange={e => setFilterCompany(e.target.value)}
+                      className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-200 text-gray-800 placeholder-gray-400"
+                    />
+                  </div>
+                  <div className="flex flex-col">
+                    <label className="text-gray-800 text-xs font-semibold mb-1">Role / Title</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. AI Engineer"
+                      value={filterTitle}
+                      onChange={e => setFilterTitle(e.target.value)}
+                      className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-200 text-gray-800 placeholder-gray-400"
+                    />
+                  </div>
+                  <div className="flex flex-col">
+                    <label className="text-gray-800 text-xs font-semibold mb-1">Date</label>
+                    <input
+                      type="text"
+                      placeholder="DD/MM/YYYY"
+                      value={filterDate}
+                      onChange={handleDateInput}
+                      className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-200 text-gray-800 placeholder-gray-400"
+                      maxLength={10}
+                    />
+                  </div>
+                                    <div className="flex flex-col">
+                    <label className="text-gray-800 text-xs font-semibold mb-1">Status</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Submitted, Accepted"
+                      value={filterStatus}
+                      onChange={e => setFilterStatus(e.target.value)}
+                      className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-200 text-gray-800 placeholder-gray-400"
+                    />
+                  </div>
+                  <div className="flex flex-col">
+                    <label className="text-gray-800 text-xs font-semibold mb-1">Salary</label>
+                    <input
+                      type="text"
+                      placeholder="Salary (in digits)"
+                      value={filterSalary}
+                      onChange={e => setFilterSalary(e.target.value)}
+                      className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-200 text-gray-800 placeholder-gray-400"
+                    />
+                  </div>
+                  <button
+                    className="ml-auto bg-pink-100 text-[#e61c71] px-4 py-2 rounded font-semibold hover:bg-pink-200 transition self-end"
+                    onClick={() => { setFilterCompany(''); setFilterTitle(''); setFilterStatus(''); setFilterSalary(''); setFilterDate(''); }}
+                  >
+                    Clear
+                  </button>
+                </div>
+              )}
 
               {/* Applications Table */}
               <div className="bg-white rounded-xl shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -435,23 +623,25 @@ const Dashboard = () => {
                   <table className="w-full">
                     <thead className="bg-gray-50 border-b">
                       <tr>
-                        <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 uppercase">Job Title</th>
                         <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 uppercase">Company</th>
+                        <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 uppercase">Role / Title</th>
                         <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 uppercase">Date Applied</th>
                         <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 uppercase">Status</th>
+                        <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 uppercase">Salary</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
-                      {applications.map((app, index) => (
+                      {filteredApplications.map((app, index) => (
                         <tr key={app.id} className={`hover:bg-gray-50 transition-colors animate-in slide-in-from-left-4 duration-500`} style={{animationDelay: `${index * 100}ms`}}>
-                          <td className="px-6 py-4 text-sm font-medium text-gray-900">{app.jobTitle}</td>
                           <td className="px-6 py-4 text-sm text-gray-700">{app.company}</td>
+                          <td className="px-6 py-4 text-sm font-medium text-gray-900">{app.jobTitle}</td>
                           <td className="px-6 py-4 text-sm text-gray-700">{app.dateApplied}</td>
                           <td className="px-6 py-4">
                             <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(app.status)}`}>
                               {app.status}
                             </span>
                           </td>
+                          <td className="px-6 py-4 text-sm text-gray-700">{app.salary ? app.salary : '-'}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -460,6 +650,115 @@ const Dashboard = () => {
               </div>
             </>
           )}
+
+          {activeTab === 'settings' && (
+  <div className="max-w-3xl mx-auto flex flex-col gap-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+    {/* Profile Section */}
+    <div className="bg-white rounded-2xl shadow-lg p-12">
+      <h2 className="text-2xl font-bold mb-8 text-gray-800">Profile</h2>
+      <div className="flex items-center mb-4 gap-10">
+        <div className="relative">
+          <Image
+            src={profilePic || '/logo2.png'}
+            alt="Profile"
+            width={144}
+            height={144}
+            className="w-36 h-36 rounded-full object-cover border-4 border-pink-200 shadow-lg"
+          />
+          <label htmlFor="profile-pic-upload" className="absolute bottom-2 right-2 bg-[#e61c71] text-white rounded-full p-3 cursor-pointer hover:bg-pink-600 transition-all shadow-md">
+            <Upload size={20} />
+            <input
+              id="profile-pic-upload"
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleProfilePicUpload}
+            />
+          </label>
+        </div>
+        <div className="flex-1">
+          <div className="mb-4">
+            <label className="block text-xs font-semibold text-gray-700 mb-1">Full Name</label>
+            <input
+              type="text"
+              value={fullName}
+              onChange={e => setFullName(e.target.value)}
+              className="border border-gray-300 rounded px-4 py-3 text-lg w-full focus:outline-none focus:ring-2 focus:ring-pink-200 text-gray-800"
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-xs font-semibold text-gray-700 mb-1">Email</label>
+            <input
+              type="email"
+              value={email}
+              disabled
+              className="border border-gray-200 bg-gray-100 rounded px-4 py-3 text-lg w-full text-gray-500 cursor-not-allowed"
+            />
+          </div>
+          <button
+            className={`mt-2 px-6 py-2 rounded-lg font-semibold shadow transition-all text-white text-lg ${((fullName !== 'Ali') || profilePic) ? 'bg-[#e61c71] hover:bg-pink-600 cursor-pointer' : 'bg-gray-300 cursor-not-allowed'}`}
+            disabled={!((fullName !== 'Ali') || profilePic)}
+          >
+            Save
+          </button>
+        </div>
+      </div>
+    </div>
+
+    {/* Preferences Section */}
+    <div className="bg-white rounded-2xl shadow-lg p-12">
+      <h3 className="text-2xl font-semibold text-gray-800 mb-6">Preferences</h3>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div>
+          <label className="block text-xs font-semibold text-gray-700 mb-2">Top Roles</label>
+          <PreferenceList
+            items={topRoles}
+            setItems={setTopRoles}
+            placeholder="Add role"
+            maxItems={5}
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-semibold text-gray-700 mb-2">Top Companies</label>
+          <PreferenceList
+            items={topCompanies}
+            setItems={setTopCompanies}
+            placeholder="Add company"
+            maxItems={5}
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-semibold text-gray-700 mb-2">Top Locations</label>
+          <PreferenceList
+            items={topLocations}
+            setItems={setTopLocations}
+            placeholder="Add location"
+            maxItems={5}
+          />
+        </div>
+      </div>
+    </div>
+
+    {/* Account Settings */}
+    <div className="bg-white rounded-2xl shadow-lg p-12">
+      <h3 className="text-2xl font-semibold text-gray-800 mb-4">Account</h3>
+      <div className="flex gap-6">
+        <button
+          className="bg-red-100 text-red-600 px-6 py-3 rounded font-semibold hover:bg-red-200 transition text-lg"
+          onClick={handleDeleteAccount}
+        >
+          Delete Account
+        </button>
+        <button
+          className="bg-gray-100 text-gray-700 px-6 py-3 rounded font-semibold hover:bg-gray-200 transition text-lg"
+          onClick={handleLogout}
+        >
+          Log Out
+        </button>
+      </div>
+    </div>
+  </div>
+)}
         </div>
       </div>
     </div>
