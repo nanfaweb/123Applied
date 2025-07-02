@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import { 
   Home, 
   FileText, 
-  RefreshCw, 
   MessageCircle, 
   CreditCard, 
   Settings, 
@@ -206,20 +205,16 @@ const Dashboard = () => {
               <span>Application Tracker</span>
             </button>
             
-            <button type="button" className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left text-gray-600 hover:bg-pink-50 transition-all duration-200 transform hover:scale-105">
-              <RefreshCw size={20} />
-              <span>Reload</span>
-            </button>
             
             <button type="button" className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left text-gray-600 hover:bg-pink-50 transition-all duration-200 transform hover:scale-105">
               <MessageCircle size={20} />
               <span>Chat Support</span>
             </button>
             
-            <button type="button" className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left text-gray-600 hover:bg-pink-50 transition-all duration-200 transform hover:scale-105">
+            <a href="/dashboard/billing" className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left text-gray-600 hover:bg-pink-50 transition-all duration-200 transform hover:scale-105">
               <CreditCard size={20} />
               <span>Billing</span>
-            </button>
+            </a>
           </div>
         </nav>
         

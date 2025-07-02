@@ -12,7 +12,11 @@ interface PricingTier {
   features: string[]
 }
 
-const Pricing: FC = () => {
+interface PricingProps {
+  showPayButton?: boolean;
+}
+
+const Pricing: FC<PricingProps> = ({ showPayButton }) => {
   const { activePlan: activeTab, setActivePlan: setActiveTab } = usePricing()
 
   const studentTiers: PricingTier[] = [
@@ -127,7 +131,8 @@ const Pricing: FC = () => {
         <div className="max-w-[1200px] mx-auto grid grid-cols-3 gap-8 px-4 max-lg:grid-cols-1">
           {currentTiers.map((tier, index) => (
             <div
-              key={index}              className={`group relative min-h-[400px] pt-4 ${
+              key={index}
+              className={`group relative h-[420px] flex flex-col pt-4 ${
                 activeTab === 'student' 
                 ? 'bg-white/80' 
                 : 'bg-[#1a1a1a]'
@@ -175,7 +180,9 @@ const Pricing: FC = () => {
                     }`}>${tier.price}</p>
                     <p className={
                       activeTab === 'student' ? 'text-gray-600' : 'text-gray-400'
-                    }>{tier.submissions} Custom Resumes</p>
+                    }>
+                      {tier.submissions} {activeTab === 'student' ? 'Custom Resumes' : 'Custom Resumes + Cover Letters'}
+                    </p>
                   </div>
                 </div>
 
@@ -193,16 +200,29 @@ const Pricing: FC = () => {
                     </li>
                   ))}
                 </ul>
-                <button 
-                  onClick={() => window.location.href = '/signup'}
-                  className={`w-full py-4 rounded-xl font-semibold transition-all duration-500 ease-in-out cursor-pointer transform hover:scale-[1.02] hover:-translate-y-0.5 ${
-                    activeTab === 'student'
-                    ? 'bg-gradient-to-r from-pink-500 to-[#e61c71] text-white hover:shadow-lg hover:shadow-[#e61c71]/20'
-                    : 'bg-gradient-to-br from-violet-500 to-purple-500 text-white hover:shadow-lg hover:shadow-violet-500/20'
-                  }`}
-                >
-                  Get Started
-                </button>
+                {showPayButton ? (
+                  <button
+                    onClick={() => alert('Stripe payment coming soon!')}
+                    className={`w-full py-4 rounded-xl font-semibold transition-all duration-500 ease-in-out cursor-pointer transform hover:scale-[1.02] hover:-translate-y-0.5 ${
+                      activeTab === 'student'
+                        ? 'bg-gradient-to-r from-pink-500 to-[#e61c71] text-white hover:shadow-lg hover:shadow-[#e61c71]/20'
+                        : 'bg-gradient-to-br from-violet-500 to-purple-500 text-white hover:shadow-lg hover:shadow-violet-500/20'
+                    }`}
+                  >
+                    Pay with Stripe
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => window.location.href = '/signup'}
+                    className={`w-full py-4 rounded-xl font-semibold transition-all duration-500 ease-in-out cursor-pointer transform hover:scale-[1.02] hover:-translate-y-0.5 ${
+                      activeTab === 'student'
+                        ? 'bg-gradient-to-r from-pink-500 to-[#e61c71] text-white hover:shadow-lg hover:shadow-[#e61c71]/20'
+                        : 'bg-gradient-to-br from-violet-500 to-purple-500 text-white hover:shadow-lg hover:shadow-violet-500/20'
+                    }`}
+                  >
+                    Get Started
+                  </button>
+                )}
               </div>
             </div>
           ))}
