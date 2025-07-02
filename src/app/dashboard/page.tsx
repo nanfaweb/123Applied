@@ -31,9 +31,7 @@ const Dashboard = () => {
   const [filterTitle, setFilterTitle] = useState('');
   const [filterSalary, setFilterSalary] = useState('');
   const [filterDate, setFilterDate] = useState('');
-  const [profilePic, setProfilePic] = useState<string | null>(null);
-  const [fullName, setFullName] = useState('Ali');
-  const [email] = useState('ali@example.com');
+  // Profile/settings state removed
 
   // Close dropdown when clicking outside
   React.useEffect(() => {
@@ -160,85 +158,15 @@ const Dashboard = () => {
     setFilterDate(value.slice(0, 10));
   };
 
-  const handleProfilePicUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setProfilePic(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
+  // Profile/settings handler removed
 
-  const handleDeleteAccount = () => {
-    if (window.confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
-      // Add account deletion logic here
-      alert('Account deleted');
-    }
-  };
+  // Profile/settings handler removed
 
-  const handleLogout = () => {
-    // Add logout logic here
-    alert('Logged out');
-  };
+  // Profile/settings handler removed
 
-  const [topRoles, setTopRoles] = useState<string[]>([]);
-  const [topCompanies, setTopCompanies] = useState<string[]>([]);
-  const [topLocations, setTopLocations] = useState<string[]>([]);
+  // Profile/settings state removed
 
-  const PreferenceList = ({ items, setItems, placeholder, maxItems }: { items: string[], setItems: (items: string[]) => void, placeholder: string, maxItems: number }) => {
-    const [input, setInput] = useState('');
-    const handleAdd = () => {
-      const trimmed = input.trim();
-      if (trimmed && !items.includes(trimmed) && items.length < maxItems) {
-        setItems([...items, trimmed]);
-        setInput('');
-      }
-    };
-    const handleRemove = (idx: number) => {
-      setItems(items.filter((_, i) => i !== idx));
-    };
-    return (
-      <div>
-        <div className="flex gap-2 mb-2">
-          <input
-            type="text"
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            placeholder={placeholder}
-            className="border border-gray-300 rounded px-3 py-2 text-sm w-full focus:outline-none focus:ring-2 focus:ring-pink-200 text-gray-800"
-            onKeyDown={e => { if (e.key === 'Enter') handleAdd(); }}
-            disabled={items.length >= maxItems}
-          />
-          <button
-            type="button"
-            className={`px-3 py-2 rounded bg-[#e61c71] text-white font-semibold hover:bg-pink-600 transition ${items.length >= maxItems || !input.trim() ? 'opacity-50 cursor-not-allowed' : ''}`}
-            onClick={handleAdd}
-            disabled={items.length >= maxItems || !input.trim()}
-          >
-            Add
-          </button>
-        </div>
-        <ul className="flex flex-wrap gap-2">
-          {items.map((item, idx) => (
-            <li key={idx} className="bg-pink-100 text-[#e61c71] px-3 py-1 rounded-full flex items-center text-sm font-medium">
-              {item}
-              <button
-                type="button"
-                className="ml-2 text-pink-600 hover:text-pink-900 focus:outline-none"
-                onClick={() => handleRemove(idx)}
-                aria-label={`Remove ${item}`}
-              >
-                ×
-              </button>
-            </li>
-          ))}
-        </ul>
-        <div className="text-xs text-gray-500 mt-1">{items.length} / {maxItems} allowed</div>
-      </div>
-    );
-  };
+  // Profile/settings component removed
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -313,12 +241,13 @@ const Dashboard = () => {
             </button>
             {userDropdownOpen && (
               <div id="user-dropdown-menu" className="absolute bottom-full mb-2 left-0 w-full bg-white rounded-lg shadow-lg border animate-in slide-in-from-bottom-2 duration-200 z-50">
-                <button type="button" className="w-full flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-t-lg transition-colors"
-                  onClick={() => setActiveTab('settings')}
+                <a
+                  href="/dashboard/settings"
+                  className="w-full flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-t-lg transition-colors"
                 >
                   <Settings size={16} />
                   <span>Settings</span>
-                </button>
+                </a>
                 <button type="button" className="w-full flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-b-lg transition-colors border-t">
                   <LogOut size={16} />
                   <span>Sign Out</span>
@@ -651,114 +580,7 @@ const Dashboard = () => {
             </>
           )}
 
-          {activeTab === 'settings' && (
-  <div className="max-w-3xl mx-auto flex flex-col gap-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-    {/* Profile Section */}
-    <div className="bg-white rounded-2xl shadow-lg p-12">
-      <h2 className="text-2xl font-bold mb-8 text-gray-800">Profile</h2>
-      <div className="flex items-center mb-4 gap-10">
-        <div className="relative">
-          <Image
-            src={profilePic || '/logo2.png'}
-            alt="Profile"
-            width={144}
-            height={144}
-            className="w-36 h-36 rounded-full object-cover border-4 border-pink-200 shadow-lg"
-          />
-          <label htmlFor="profile-pic-upload" className="absolute bottom-2 right-2 bg-[#e61c71] text-white rounded-full p-3 cursor-pointer hover:bg-pink-600 transition-all shadow-md">
-            <Upload size={20} />
-            <input
-              id="profile-pic-upload"
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={handleProfilePicUpload}
-            />
-          </label>
-        </div>
-        <div className="flex-1">
-          <div className="mb-4">
-            <label className="block text-xs font-semibold text-gray-700 mb-1">Full Name</label>
-            <input
-              type="text"
-              value={fullName}
-              onChange={e => setFullName(e.target.value)}
-              className="border border-gray-300 rounded px-4 py-3 text-lg w-full focus:outline-none focus:ring-2 focus:ring-pink-200 text-gray-800"
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block text-xs font-semibold text-gray-700 mb-1">Email</label>
-            <input
-              type="email"
-              value={email}
-              disabled
-              className="border border-gray-200 bg-gray-100 rounded px-4 py-3 text-lg w-full text-gray-500 cursor-not-allowed"
-            />
-          </div>
-          <button
-            className={`mt-2 px-6 py-2 rounded-lg font-semibold shadow transition-all text-white text-lg ${((fullName !== 'Ali') || profilePic) ? 'bg-[#e61c71] hover:bg-pink-600 cursor-pointer' : 'bg-gray-300 cursor-not-allowed'}`}
-            disabled={!((fullName !== 'Ali') || profilePic)}
-          >
-            Save
-          </button>
-        </div>
-      </div>
-    </div>
-
-    {/* Preferences Section */}
-    <div className="bg-white rounded-2xl shadow-lg p-12">
-      <h3 className="text-2xl font-semibold text-gray-800 mb-6">Preferences</h3>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div>
-          <label className="block text-xs font-semibold text-gray-700 mb-2">Top Roles</label>
-          <PreferenceList
-            items={topRoles}
-            setItems={setTopRoles}
-            placeholder="Add role"
-            maxItems={5}
-          />
-        </div>
-        <div>
-          <label className="block text-xs font-semibold text-gray-700 mb-2">Top Companies</label>
-          <PreferenceList
-            items={topCompanies}
-            setItems={setTopCompanies}
-            placeholder="Add company"
-            maxItems={5}
-          />
-        </div>
-        <div>
-          <label className="block text-xs font-semibold text-gray-700 mb-2">Top Locations</label>
-          <PreferenceList
-            items={topLocations}
-            setItems={setTopLocations}
-            placeholder="Add location"
-            maxItems={5}
-          />
-        </div>
-      </div>
-    </div>
-
-    {/* Account Settings */}
-    <div className="bg-white rounded-2xl shadow-lg p-12">
-      <h3 className="text-2xl font-semibold text-gray-800 mb-4">Account</h3>
-      <div className="flex gap-6">
-        <button
-          className="bg-red-100 text-red-600 px-6 py-3 rounded font-semibold hover:bg-red-200 transition text-lg"
-          onClick={handleDeleteAccount}
-        >
-          Delete Account
-        </button>
-        <button
-          className="bg-gray-100 text-gray-700 px-6 py-3 rounded font-semibold hover:bg-gray-200 transition text-lg"
-          onClick={handleLogout}
-        >
-          Log Out
-        </button>
-      </div>
-    </div>
-  </div>
-)}
+          {/* Profile/settings page removed */}
         </div>
       </div>
     </div>
