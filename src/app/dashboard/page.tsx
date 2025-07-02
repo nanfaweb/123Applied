@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
+
 import { 
   Home, 
   FileText, 
@@ -167,8 +168,12 @@ const Dashboard = () => {
 
   // Profile/settings component removed
 
+
+
+
+
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-gray-50 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
       {/* Sidebar */}
       <div className="w-64 bg-white shadow-lg">
         <div className="p-4">

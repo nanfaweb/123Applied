@@ -4,15 +4,21 @@ import React, { useState } from "react";
 import Link from "next/link";
 import Pricing from "../../../components/Pricing";
 
-// Dummy data for UI demonstration (for when user HAS a plan)
+// Pricing plan names and tiers from Pricing component
 const userHasPlan = true; // Change to true to preview the other state
-// Use the first two proTiers from Pricing for simulation
-const proTiers = [
-  { submissions: 25, price: 79.99 },
-  { submissions: 100, price: 299.99 },
+const studentTiers = [
+  { name: 'Student', submissions: 25, price: 39.99 },
+  { name: 'Student Plus', submissions: 50, price: 69.99 },
+  { name: 'Student Pro', submissions: 100, price: 99.99 },
 ];
+const proTiers = [
+  { name: 'Professional', submissions: 25, price: 79.99 },
+  { name: 'Professional Plus', submissions: 100, price: 299.99 },
+  { name: 'Professional Pro', submissions: 200, price: 399.99 },
+];
+// Example: user is on Professional plan
 const currentPlan = {
-  name: `Pro (${proTiers[0].submissions} Letters)`,
+  name: `${proTiers[0].name} (${proTiers[0].submissions} Letters)`,
   billingCycle: "Monthly",
   lettersRemaining: 14,
   lettersTotal: proTiers[0].submissions,
@@ -22,8 +28,10 @@ const currentPlan = {
   cardLast4: "4242",
 };
 const billingHistory = [
-  { date: "2025-06-01", plan: "Pro", amount: "$19", status: "Paid" },
-  { date: "2025-05-01", plan: "Pro", amount: "$19", status: "Paid" },
+  { date: "2025-06-01", plan: studentTiers[0].name, amount: `$${studentTiers[0].price}`, status: "Paid" },
+  { date: "2025-05-01", plan: studentTiers[1].name, amount: `$${studentTiers[1].price}`, status: "Paid" },
+  { date: "2025-04-01", plan: proTiers[0].name, amount: `$${proTiers[0].price}`, status: "Paid" },
+  { date: "2025-03-01", plan: proTiers[1].name, amount: `$${proTiers[1].price}`, status: "Paid" },
 ];
 const faqs = [
   { q: "How do I upgrade my plan?", a: "Select a new plan above and follow the checkout process." },
@@ -111,53 +119,53 @@ export default function BillingPage() {
             {/* Upgrade Options */}
             <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-lg border border-slate-200/50 p-8">
               <h2 className="text-xl font-bold text-slate-900 mb-6">Upgrade Your Plan</h2>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Upgrade Plan */}
-                <div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-slate-900 to-slate-800 p-8 text-white hover:shadow-2xl transition-all duration-300">
-                  <div className="absolute inset-0 bg-gradient-to-br from-slate-800 to-slate-900 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  <div className="relative z-10">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-lg font-semibold">Pro Plus</h3>
-                      <span className="px-3 py-1 bg-white/20 rounded-full text-xs font-medium">
-                        Upgrade
-                      </span>
-                    </div>
-                    <div className="mb-6">
-                      <div className="text-3xl font-bold mb-2">{proTiers[1].submissions} Letters</div>
-                      <div className="text-white/80 text-sm">Perfect for growing businesses</div>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-2xl font-bold">${proTiers[1].price}</span>
-                      <button className="px-6 py-2 bg-white text-slate-900 rounded-lg font-semibold hover:bg-slate-100 transition-colors">
-                        Upgrade Now
-                      </button>
-                    </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Upgrade Plan: Professional Plus */}
+              <div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-slate-900 to-slate-800 p-8 text-white hover:shadow-2xl transition-all duration-300">
+                <div className="absolute inset-0 bg-gradient-to-br from-slate-800 to-slate-900 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="relative z-10">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold">{proTiers[1].name}</h3>
+                    <span className="px-3 py-1 bg-white/20 rounded-full text-xs font-medium">
+                      Upgrade
+                    </span>
                   </div>
-                </div>
-
-                {/* Add-on Pack */}
-                <div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-rose-500 to-pink-600 p-8 text-white hover:shadow-2xl transition-all duration-300">
-                  <div className="absolute inset-0 bg-gradient-to-br from-rose-400 to-pink-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  <div className="relative z-10">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-lg font-semibold">Letter Pack</h3>
-                      <span className="px-3 py-1 bg-white/20 rounded-full text-xs font-medium">
-                        Add-on
-                      </span>
-                    </div>
-                    <div className="mb-6">
-                      <div className="text-3xl font-bold mb-2">+{proTiers[0].submissions} Letters</div>
-                      <div className="text-white/80 text-sm">One-time purchase</div>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-2xl font-bold">${proTiers[0].price}</span>
-                      <button className="px-6 py-2 bg-white text-rose-600 rounded-lg font-semibold hover:bg-slate-100 transition-colors">
-                        Add Pack
-                      </button>
-                    </div>
+                  <div className="mb-6">
+                    <div className="text-3xl font-bold mb-2">{proTiers[1].submissions} Letters</div>
+                    <div className="text-white/80 text-sm">Perfect for growing professionals</div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-2xl font-bold">${proTiers[1].price}</span>
+                    <button className="px-6 py-2 bg-white text-slate-900 rounded-lg font-semibold hover:bg-slate-100 transition-colors">
+                      Upgrade Now
+                    </button>
                   </div>
                 </div>
               </div>
+
+              {/* Upgrade Plan: Student Pro */}
+              <div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-pink-500 to-[#e61c71] p-8 text-white hover:shadow-2xl transition-all duration-300">
+                <div className="absolute inset-0 bg-gradient-to-br from-pink-400 to-[#e61c71] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="relative z-10">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold">{studentTiers[2].name}</h3>
+                    <span className="px-3 py-1 bg-white/20 rounded-full text-xs font-medium">
+                      Upgrade
+                    </span>
+                  </div>
+                  <div className="mb-6">
+                    <div className="text-3xl font-bold mb-2">{studentTiers[2].submissions} Letters</div>
+                    <div className="text-white/80 text-sm">Best for students with many applications</div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-2xl font-bold">${studentTiers[2].price}</span>
+                    <button className="px-6 py-2 bg-white text-[#e61c71] rounded-lg font-semibold hover:bg-pink-100 transition-colors">
+                      Upgrade Now
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
             </div>
 
             {/* Billing History */}
@@ -211,13 +219,13 @@ export default function BillingPage() {
                 <div>
                   <h2 className="text-xl font-bold text-slate-900 mb-3">Payment Method</h2>
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-6 bg-slate-800 rounded flex items-center justify-center">
-                      <span className="text-white text-xs font-bold">{currentPlan.cardBrand}</span>
+                    <div className="w-10 h-6 bg-[#e61c71] rounded flex items-center justify-center">
+                      <span className="text-white text-xs font-bold tracking-widest">{currentPlan.cardBrand}</span>
                     </div>
                     <span className="text-slate-600 font-mono">•••• •••• •••• {currentPlan.cardLast4}</span>
                   </div>
                 </div>
-                <button className="px-6 py-2 bg-slate-900 text-white font-semibold rounded-lg hover:bg-slate-800 transition-colors">
+                <button className="px-6 py-2 bg-[#e61c71] text-white font-semibold rounded-lg shadow-md hover:bg-pink-600 hover:scale-105 focus:ring-2 focus:ring-pink-300 focus:outline-none transition-all duration-200">
                   Update Card
                 </button>
               </div>
@@ -253,7 +261,7 @@ export default function BillingPage() {
               </div>
               
               <div className="text-center">
-                <button className="px-8 py-3 bg-slate-900 text-white font-semibold rounded-lg hover:bg-slate-800 transition-colors">
+                <button className="px-8 py-3 bg-[#e61c71] text-white font-semibold rounded-lg shadow-md hover:bg-pink-600 hover:scale-105 focus:ring-2 focus:ring-pink-300 focus:outline-none transition-all duration-200">
                   Contact Support
                 </button>
               </div>

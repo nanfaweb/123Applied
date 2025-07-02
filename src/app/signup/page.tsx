@@ -162,7 +162,7 @@ export default function SignUp() {
 
   return (
     <div className={`min-h-screen flex ${inter.className}`}>
-      {/* Left side - Decorative Background */}
+      {/* Left side - Decorative Background with Marketing Text */}
       <div className="hidden lg:flex lg:w-1/2 relative bg-gradient-to-br from-blue-400 via-white to-pink-400 overflow-hidden">
         <div className="absolute inset-0">
           <div className="absolute top-20 left-20 w-32 h-32 rounded-full bg-blue-500/30 blur-2xl animate-pulse"></div>
@@ -171,10 +171,24 @@ export default function SignUp() {
           <div className="absolute top-1/3 right-1/3 w-24 h-24 rounded-full bg-purple-400/25 blur-xl animate-pulse"></div>
         </div>
         <div className="relative w-full flex items-center justify-center">
-          <div className="text-center text-black/90 z-10 px-8">
-            <h1 className="text-7xl font-extrabold mb-8 drop-shadow-2xl shadow-black">Your Job Search, Automated.</h1>
-            <p className="text-3xl opacity-90 drop-shadow-2xl shadow-black font-semibold">Upload once. Apply everywhere.</p>
-            <p className="text-3xl opacity-90 drop-shadow-2xl shadow-black font-semibold">Let us handle the rest.</p>
+          <div className="text-center z-10 px-8 w-full">
+            {/* Main Marketing Text (from screenshot) */}
+            <h1 className="text-6xl lg:text-7xl font-extrabold mb-4 bg-gradient-to-r from-black via-neutral-700 to-black bg-clip-text text-transparent">Your Career,<br /><span className="block">Automated.</span></h1>
+            <p className="text-xl lg:text-2xl font-medium text-black/90 mb-8">Upload once. Apply everywhere. Let AI handle your job search while you focus on what matters most.</p>
+            <div className="flex flex-wrap justify-center gap-8 text-base font-semibold text-black/80">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-cyan-700 inline-block"></span>
+                <span>Smart Matching</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-pink-700 inline-block"></span>
+                <span>Auto Applications</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-blue-900 inline-block"></span>
+                <span>Real-time Tracking</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>

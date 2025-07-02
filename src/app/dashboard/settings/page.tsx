@@ -191,7 +191,7 @@ export default function ProfileSettings() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Back Button */}
         <div className="mb-4">
-          <Link href="/dashboard" className="inline-flex items-center gap-2 text-pink-600 hover:text-pink-800 font-medium">
+          <Link href="/dashboard" className="inline-flex items-center gap-2 text-[#e61c71] hover:text-pink-600 font-medium">
             {/* You can use an icon here if you want, e.g. <ArrowLeft /> */}
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
               <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
