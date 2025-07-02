@@ -4,6 +4,7 @@ import "./globals.css";
 import { PricingProvider } from "../context/PricingContext";
 import { config } from "@fortawesome/fontawesome-svg-core";
 import "@fortawesome/fontawesome-svg-core/styles.css";
+import ScrollManager from "../components/ScrollManager";// 👈 Import this
 
 config.autoAddCss = false;
 
@@ -30,6 +31,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
       <body>
+        <ScrollManager /> {/* 👈 Add this for buttery smooth scroll */}
         <PricingProvider>{children}</PricingProvider>
       </body>
     </html>

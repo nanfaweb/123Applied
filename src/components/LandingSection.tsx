@@ -3,14 +3,6 @@
 import Image from "next/image";
 import { useEffect, useRef } from "react";
 
-const cardImages = [
-  "/cards/card1.jpg",
-  "/cards/card2.jpg",
-  "/cards/card3.jpg",
-  "/cards/card4.jpg",
-  "/cards/card5.jpg",
-];
-
 // 🔽 Fade-in on scroll hook
 const useFadeInOnScroll = () => {
   const ref = useRef<HTMLDivElement | null>(null);
@@ -35,6 +27,14 @@ const useFadeInOnScroll = () => {
   return ref;
 };
 
+const cardImages = [
+  "/cards/card1.jpg",
+  "/cards/card2.jpg",
+  "/cards/card3.jpg",
+  "/cards/card4.jpg",
+  "/cards/card5.jpg",
+];
+
 export default function LandingSection() {
   const headingRef = useFadeInOnScroll();
   const carouselRef = useFadeInOnScroll();
@@ -50,11 +50,16 @@ export default function LandingSection() {
         Our Recent Hires
       </h2>
 
-      {/* 🔁 Auto-scrolling Carousel */}
+      {/* 🔁 Auto-scrolling Carousel with blur sides */}
       <div
         ref={carouselRef}
-        className="w-full overflow-hidden mb-10 fade-hidden transition-all duration-700"
+        className="relative w-full overflow-hidden mb-10 fade-hidden transition-all duration-700"
       >
+        {/* ✨ Blur overlays on sides */}
+        <div className="pointer-events-none absolute top-0 left-0 h-full w-16 z-10 bg-gradient-to-r from-white to-transparent" />
+        <div className="pointer-events-none absolute top-0 right-0 h-full w-16 z-10 bg-gradient-to-l from-white to-transparent" />
+
+        {/* 🔄 Carousel content */}
         <div className="flex w-max animate-scroll-left gap-4">
           {[...cardImages, ...cardImages].map((src, index) => (
             <div

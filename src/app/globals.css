@@ -136,3 +136,14 @@ body {
     animation: scroll-left 30s linear infinite;
   }
 }
+
+
+.fade-in-up {
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+}
+
+.fade-hidden {
+  opacity: 0;
+  transform: translateY(30px);
+}

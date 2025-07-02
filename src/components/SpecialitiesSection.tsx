@@ -2,32 +2,37 @@
 
 import { useEffect, useRef } from "react";
 
-// 👇 helper hook for fade-in-on-scroll
-const useFadeInOnScroll = () => {
+// Custom hook for fade-in-on-scroll
+const useFadeInOnScroll = (stagger = false) => {
   const ref = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
 
+    const children = stagger ? Array.from(el.children) : [el];
+
     const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          el.classList.add("fade-in-up");
-        }
+      (entries) => {
+        entries.forEach((entry, idx) => {
+          if (entry.isIntersecting) {
+            setTimeout(() => {
+              entry.target.classList.add("fade-in-up");
+            }, stagger ? idx * 100 : 0); // stagger effect
+          }
+        });
       },
-      {
-        threshold: 0.2,
-      }
+      { threshold: 0.2 }
     );
 
-    observer.observe(el);
+    children.forEach((child) => observer.observe(child));
     return () => observer.disconnect();
-  }, []);
+  }, [stagger]);
 
   return ref;
 };
 
+// List of specialities
 const majors = [
   { name: "Finance", emoji: "💰" },
   { name: "Doctor", emoji: "🩺" },
@@ -57,25 +62,32 @@ const majors = [
 
 export default function SpecialitiesSection() {
   const sectionRef = useFadeInOnScroll();
+  const headingRef = useFadeInOnScroll();
+  const cardsRef = useFadeInOnScroll(true); // staggered
 
   return (
     <section className="w-full bg-white py-20 px-4 flex justify-center">
-      {/* 🔲 Card-like black section */}
       <div
         ref={sectionRef}
         className="fade-hidden bg-black w-[90%] rounded-2xl py-16 px-6 text-white flex flex-col items-center shadow-xl"
       >
         {/* 🔥 Heading */}
-        <h2 className="text-4xl font-bold mb-12 font-playfair text-center">
+        <h2
+          ref={headingRef}
+          className="fade-hidden text-4xl font-bold mb-12 font-playfair text-center transition-all duration-700"
+        >
           Our Specialities
         </h2>
 
-        {/* 🔲 Grid of Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 max-w-6xl w-full">
+        {/* 🔳 Grid of Cards */}
+        <div
+          ref={cardsRef}
+          className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 max-w-6xl w-full"
+        >
           {majors.map((major, index) => (
             <div
               key={index}
-              className="border border-white/20 bg-black text-white rounded-xl px-4 py-3 text-center shadow-md hover:scale-105 transition-transform duration-300"
+              className="opacity-0 translate-y-6 border border-white/20 bg-black text-white rounded-xl px-4 py-3 text-center shadow-md hover:scale-105 transition-transform duration-300"
             >
               <span className="text-lg">
                 {major.emoji} {major.name}

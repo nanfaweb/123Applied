@@ -7,6 +7,7 @@ import StickyButton from "../components/StickyButton";
 import CustomerCarousel from "../components/CustomerCarousel";
 import LandingSection from "../components/LandingSection";
 import SpecialitiesSection from "../components/SpecialitiesSection";
+import AlternativesSection from "../components/AlternativesSection";
 
 
 export default function Home() {
@@ -32,6 +33,8 @@ export default function Home() {
       </section>
       <LandingSection />
       <SpecialitiesSection />
+      <AlternativesSection />
+   
       {/* Footer */}
       <Footer />
 
