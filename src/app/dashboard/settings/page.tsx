@@ -191,12 +191,16 @@ export default function ProfileSettings() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Back Button */}
         <div className="mb-4">
-          <Link href="/dashboard" className="inline-flex items-center gap-2 text-[#e61c71] hover:text-pink-600 font-medium">
-            {/* You can use an icon here if you want, e.g. <ArrowLeft /> */}
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-            </svg>
-            Back to Dashboard
+          <Link 
+            href="/dashboard" 
+            className="group flex items-center gap-3 text-slate-600 hover:text-slate-900 transition-all duration-200 font-medium"
+          >
+            <div className="w-8 h-8 rounded-full bg-slate-100 group-hover:bg-slate-200 flex items-center justify-center transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+              </svg>
+            </div>
+            <span className="text-sm font-semibold">Back to Dashboard</span>
           </Link>
         </div>
         {/* Header */}
@@ -339,7 +343,11 @@ export default function ProfileSettings() {
                   <h3 className="font-medium text-gray-900">Billing & Subscription</h3>
                   <p className="text-sm text-gray-600">Manage your subscription and billing information</p>
                 </div>
-                <button className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                <button
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                  onClick={() => window.location.href = '/dashboard/billing'}
+                  type="button"
+                >
                   Manage
                 </button>
               </div>

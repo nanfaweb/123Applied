@@ -5,7 +5,7 @@ import Link from "next/link";
 import Pricing from "../../../components/Pricing";
 
 // Pricing plan names and tiers from Pricing component
-const userHasPlan = true; // Change to true to preview the other state
+const userHasPlan = false; // Change to true to preview the other state
 const studentTiers = [
   { name: 'Student', submissions: 25, price: 39.99 },
   { name: 'Student Plus', submissions: 50, price: 69.99 },
