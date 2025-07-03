@@ -89,7 +89,9 @@ const Dashboard = () => {
   const preferredLocations = [
     { city: 'San Francisco, CA', count: 8 },
     { city: 'New York, NY', count: 10 },
-    { city: 'Seattle, WA', count: 14 }
+    { city: 'Seattle, WA', count: 14 },
+    { city: 'Austin, TX', count: 5 },
+    { city: 'Chicago, IL', count: 7 }
   ];
 
   const preferredCompanies = [
@@ -134,8 +136,26 @@ const Dashboard = () => {
   };
 
   const LinkedInIcon = () => (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+      <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" fill="#0A66C2"/>
+    </svg>
+  );
+
+  // White LinkedIn icon for button only, with gradient "in"
+  const LinkedInWhiteIcon = () => (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+      <defs>
+        <linearGradient id="linkedin-in-gradient" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#0f172a" />
+          <stop offset="1" stopColor="#334155" />
+        </linearGradient>
+      </defs>
+      <rect x="2" y="2" width="20" height="20" rx="4" fill="white"/>
+      <g>
+        <path d="M6.94 17h2.31v-6.2H6.94V17z" fill="url(#linkedin-in-gradient)"/>
+        <path d="M8.1 9.5c.74 0 1.2-.49 1.2-1.1-.01-.62-.46-1.1-1.18-1.1-.72 0-1.2.48-1.2 1.1 0 .61.46 1.1 1.17 1.1h.01z" fill="url(#linkedin-in-gradient)"/>
+        <path d="M11.13 17h2.31v-3.47c0-.19.01-.39.07-.53.16-.39.52-.8 1.13-.8.8 0 1.12.6 1.12 1.48V17h2.31v-3.73c0-2-1.07-2.93-2.5-2.93-1.15 0-1.66.64-1.94 1.09h.02v-.94h-2.31c.03.62 0 6.2 0 6.2z" fill="url(#linkedin-in-gradient)"/>
+      </g>
     </svg>
   );
 
@@ -172,8 +192,8 @@ const Dashboard = () => {
 
 
 
-  return (
-    <div className="flex h-screen bg-gray-50 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
+return (
+    <div className="flex h-screen bg-gray-50" style={{ WebkitOverflowScrolling: 'touch', overscrollBehavior: 'auto' }}>
       {/* Sidebar */}
       <div className="w-64 bg-white shadow-lg">
         <div className="p-4">
@@ -189,8 +209,8 @@ const Dashboard = () => {
               onClick={() => setActiveTab('dashboard')}
               className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-all duration-200 transform hover:scale-105 ${
                 activeTab === 'dashboard' 
-                  ? 'bg-gradient-to-r from-pink-500 to-[#e61c71] text-white shadow-lg' 
-                  : 'text-gray-600 hover:bg-pink-50'
+                  ? 'bg-gradient-to-r from-slate-900 to-slate-700 text-white shadow-lg' 
+                  : 'text-gray-600 hover:bg-slate-100'
               }`}
             >
               <Home size={20} />
@@ -202,8 +222,8 @@ const Dashboard = () => {
               onClick={() => setActiveTab('applications')}
               className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-all duration-200 transform hover:scale-105 ${
                 activeTab === 'applications' 
-                  ? 'bg-gradient-to-r from-pink-500 to-[#e61c71] text-white shadow-lg' 
-                  : 'text-gray-600 hover:bg-pink-50'
+                  ? 'bg-gradient-to-r from-slate-900 to-slate-700 text-white shadow-lg' 
+                  : 'text-gray-600 hover:bg-slate-100'
               }`}
             >
               <FileText size={20} />
@@ -211,12 +231,12 @@ const Dashboard = () => {
             </button>
             
             
-            <button type="button" className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left text-gray-600 hover:bg-pink-50 transition-all duration-200 transform hover:scale-105">
+            <button type="button" className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left text-gray-600 hover:bg-slate-100 transition-all duration-200 transform hover:scale-105">
               <MessageCircle size={20} />
               <span>Chat Support</span>
             </button>
             
-            <a href="/dashboard/billing" className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left text-gray-600 hover:bg-pink-50 transition-all duration-200 transform hover:scale-105">
+            <a href="/dashboard/billing" className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left text-gray-600 hover:bg-slate-100 transition-all duration-200 transform hover:scale-105">
               <CreditCard size={20} />
               <span>Billing</span>
             </a>
@@ -229,7 +249,7 @@ const Dashboard = () => {
               id="user-dropdown-btn"
               type="button"
               onClick={() => setUserDropdownOpen((prev) => !prev)}
-              className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-left bg-gradient-to-r from-pink-500 to-[#e61c71] text-white shadow-lg hover:scale-105 transition-all duration-200`}
+              className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-left bg-gradient-to-r from-slate-900 to-slate-700 text-white shadow-lg hover:scale-105 transition-all duration-200`}
               aria-haspopup="true"
               aria-expanded={userDropdownOpen}
             >
@@ -259,7 +279,7 @@ const Dashboard = () => {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1 overflow-y-auto">
         <div className="p-8">
           {activeTab === 'dashboard' && (
             <>
@@ -326,7 +346,7 @@ const Dashboard = () => {
                         />
                         <label
                           htmlFor="resume-upload"
-                          className="inline-flex items-center px-3 py-2 bg-[#e61c71] text-white text-sm rounded-lg hover:bg-pink-600 cursor-pointer transition-all duration-200 transform hover:scale-105"
+                          className="inline-flex items-center px-3 py-2 bg-gradient-to-r from-slate-900 to-slate-700 text-white text-sm rounded-lg hover:from-slate-800 hover:to-slate-600 cursor-pointer transition-all duration-200 transform hover:scale-105"
                         >
                           <Upload size={14} className="mr-1" />
                           Choose File
@@ -344,9 +364,9 @@ const Dashboard = () => {
                         <p className="text-sm text-gray-600 mb-3 mt-16">Import professional info</p>
                         <button
                           onClick={handleLinkedInConnect}
-                          className="inline-flex items-center px-4 py-2 bg-[#e61c71] text-white text-sm rounded-lg hover:bg-pink-600 transition-all duration-200 transform hover:scale-105"
+                          className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-slate-900 to-slate-700 text-white text-sm rounded-lg hover:from-slate-800 hover:to-slate-600 transition-all duration-200 transform hover:scale-105"
                         >
-                          <LinkedInIcon />
+                          <LinkedInWhiteIcon />
                           <span className="ml-2">Connect</span>
                         </button>
                       </div>
@@ -391,51 +411,61 @@ const Dashboard = () => {
                 {/* Right Column - Side Panels */}
                 <div className="space-y-6">
                   {/* Preferred Locations */}
-                  <div className="bg-white rounded-xl shadow-sm p-6 animate-in fade-in slide-in-from-right-4 duration-700 delay-300">
+                  <div className="bg-gradient-to-r from-slate-900 to-slate-700 rounded-xl shadow-sm p-4 min-h-0 animate-in fade-in slide-in-from-right-4 duration-700 delay-300">
                     <div className="flex items-center mb-4 justify-between">
                       <div className="flex items-center">
                         <MapPin size={18} className="text-[#e61c71] mr-2" />
-                        <h3 className="text-base font-semibold text-gray-800">Preferred Locations</h3>
+                        <h3 className="text-[1.25rem] font-bold text-white">Preferred Locations</h3>
                       </div>
                       <button
-                        className="text-[#e61c71] hover:text-pink-700 text-sm font-medium flex items-center transition-colors mr-2"
+                        className="text-[#e61c71] hover:text-pink-700 text-sm font-bold flex items-center transition-colors mr-2"
                         type="button"
                       >
                         Edit
                       </button>
                     </div>
                     <div className="space-y-3">
-                      {preferredLocations.map((location, index) => (
-                        <div key={index} className="flex justify-between items-center hover:bg-gray-50 p-2 rounded transition-colors">
-                          <span className="text-sm text-gray-700">{index + 1}. {location.city}</span>
-                          <span className="bg-pink-100 text-[#e61c71] px-2 py-1 rounded-full text-xs font-medium">
-                            {location.count}
-                          </span>
-                        </div>
-                      ))}
+                      <div
+                        className={`space-y-3 pr-2`}
+                        style={{ maxHeight: '92px', overflowY: 'auto', scrollbarWidth: 'thin', scrollbarColor: '#e61c71 #f3f4f6' }}
+                      >
+                        {preferredLocations.map((location, index) => (
+                          <div
+                            key={index}
+                            className="flex justify-between items-center group hover:bg-pink-900/30 p-2 rounded transition-colors"
+                          >
+                            <span className="text-sm text-white group-hover:text-pink-300">{index + 1}. {location.city}</span>
+                            <span className="bg-pink-100 text-[#e61c71] px-2 py-1 rounded-full text-xs font-medium group-hover:bg-pink-200 group-hover:text-pink-700">
+                              {location.count}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
 
                   {/* Preferred Companies */}
-                  <div className="bg-white rounded-xl shadow-sm p-6 animate-in fade-in slide-in-from-right-4 duration-700 delay-400">
+                  <div className="bg-gradient-to-r from-slate-900 to-slate-700 rounded-xl shadow-sm p-4 min-h-0 animate-in fade-in slide-in-from-right-4 duration-700 delay-400">
                     <div className="flex items-center mb-4 justify-between">
                       <div className="flex items-center">
                         <Building2 size={18} className="text-[#e61c71] mr-2" />
-                        <h3 className="text-base font-semibold text-gray-800">Preferred Companies</h3>
+                        <h3 className="text-[1.25rem] font-bold text-white">Preferred Companies</h3>
                       </div>
                       <button
-                        className="text-[#e61c71] hover:text-pink-700 text-sm font-medium flex items-center transition-colors mr-2"
+                        className="text-[#e61c71] hover:text-pink-700 text-sm font-bold flex items-center transition-colors mr-2"
                         type="button"
                       >
                         Edit
                       </button>
                     </div>
-                    <div className={`space-y-3 ${preferredCompanies.length > 4 ? 'max-h-52 overflow-y-auto pr-2' : ''}`}
-                      style={{ scrollbarWidth: 'thin', scrollbarColor: '#e61c71 #f3f4f6' }}>
+                    <div className="space-y-3 pr-2" style={{ maxHeight: '92px', overflowY: 'auto', scrollbarWidth: 'thin', scrollbarColor: '#e61c71 #f3f4f6' }}>
                       {preferredCompanies.map((company, index) => (
-                        <div key={index} className="flex justify-between items-center hover:bg-gray-50 p-2 rounded transition-colors">
-                          <span className="text-sm text-gray-700">{index + 1}. {company.company}</span>
-                          <span className="bg-pink-100 text-[#e61c71] px-2 py-1 rounded-full text-xs font-medium">
+                        <div
+                          key={index}
+                          className="flex justify-between items-center group hover:bg-pink-900/30 p-2 rounded transition-colors"
+                        >
+                          <span className="text-sm text-white group-hover:text-pink-300">{index + 1}. {company.company}</span>
+                          <span className="bg-pink-100 text-[#e61c71] px-2 py-1 rounded-full text-xs font-medium group-hover:bg-pink-200 group-hover:text-pink-700">
                             {company.count}
                           </span>
                         </div>
@@ -443,8 +473,47 @@ const Dashboard = () => {
                     </div>
                   </div>
 
+                  {/* Preferred Roles */}
+                  <div className="bg-gradient-to-r from-slate-900 to-slate-700 rounded-xl shadow-sm p-4 min-h-0 animate-in fade-in slide-in-from-right-4 duration-700 delay-500">
+                    <div className="flex items-center mb-4 justify-between">
+                      <div className="flex items-center">
+                        <Briefcase size={18} className="text-[#e61c71] mr-2" />
+                        <h3 className="text-[1.25rem] font-bold text-white">Preferred Roles</h3>
+                      </div>
+                      <button
+                        className="text-[#e61c71] hover:text-pink-700 text-sm font-bold flex items-center transition-colors mr-2"
+                        type="button"
+                      >
+                        Edit
+                      </button>
+                    </div>
+                    <div className="space-y-3 pr-2" style={{ maxHeight: '92px', overflowY: 'auto', scrollbarWidth: 'thin', scrollbarColor: '#e61c71 #f3f4f6' }}>
+                      {/* Example preferred roles, replace with dynamic data if available */}
+                      <div className="flex justify-between items-center group hover:bg-pink-900/30 p-2 rounded transition-colors">
+                        <span className="text-sm text-white group-hover:text-pink-300">1. Software Engineer</span>
+                        <span className="bg-pink-100 text-[#e61c71] px-2 py-1 rounded-full text-xs font-medium group-hover:bg-pink-200 group-hover:text-pink-700">8</span>
+                      </div>
+                      <div className="flex justify-between items-center group hover:bg-pink-900/30 p-2 rounded transition-colors">
+                        <span className="text-sm text-white group-hover:text-pink-300">2. Product Manager</span>
+                        <span className="bg-pink-100 text-[#e61c71] px-2 py-1 rounded-full text-xs font-medium group-hover:bg-pink-200 group-hover:text-pink-700">5</span>
+                      </div>
+                      <div className="flex justify-between items-center group hover:bg-pink-900/30 p-2 rounded transition-colors">
+                        <span className="text-sm text-white group-hover:text-pink-300">3. Data Analyst</span>
+                        <span className="bg-pink-100 text-[#e61c71] px-2 py-1 rounded-full text-xs font-medium group-hover:bg-pink-200 group-hover:text-pink-700">6</span>
+                      </div>
+                      <div className="flex justify-between items-center group hover:bg-pink-900/30 p-2 rounded transition-colors">
+                        <span className="text-sm text-white group-hover:text-pink-300">4. AI Engineer</span>
+                        <span className="bg-pink-100 text-[#e61c71] px-2 py-1 rounded-full text-xs font-medium group-hover:bg-pink-200 group-hover:text-pink-700">3</span>
+                      </div>
+                      <div className="flex justify-between items-center group hover:bg-pink-900/30 p-2 rounded transition-colors">
+                        <span className="text-sm text-white group-hover:text-pink-300">5. UX Designer</span>
+                        <span className="bg-pink-100 text-[#e61c71] px-2 py-1 rounded-full text-xs font-medium group-hover:bg-pink-200 group-hover:text-pink-700">2</span>
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Support Section - Button Bottom Left, Centered Text (Chat) */}
-                  <div className="bg-gradient-to-br from-pink-500 via-[#e61c71] to-pink-400 rounded-2xl p-6 text-white shadow-lg animate-in fade-in slide-in-from-bottom-4 duration-700 delay-400 min-h-[235px] flex flex-col justify-between relative overflow-hidden">
+                  <div className="bg-gradient-to-br from-pink-500 via-[#e61c71] to-pink-400 rounded-2xl p-4 min-h-[230px] text-white shadow-lg animate-in fade-in slide-in-from-bottom-4 duration-700 delay-400 flex flex-col justify-between relative overflow-hidden">
                     {/* Decorative chat icon */}
                     <div className="absolute right-6 bottom-6 opacity-20 text-white pointer-events-none select-none">
                       <MessageCircle size={80} />
@@ -459,7 +528,7 @@ const Dashboard = () => {
                       <p className="text-pink-100 text-base text-center">Chat with our support team.</p>
                       <p className="text-pink-100 text-base text-center">Here for your needs, 24/7.</p>
                     </div>
-                    <button className="absolute left-6 bottom-6 bg-white text-[#e61c71] px-6 py-2 rounded-xl font-semibold shadow-md hover:bg-pink-50 hover:text-pink-700 transition-all duration-200 transform hover:scale-105 text-lg z-10">
+                    <button className="absolute left-6 bottom-6 bg-gradient-to-r from-white to-pink-400 text-pink-700 px-6 py-2 rounded-xl font-semibold shadow-md hover:from-pink-100 hover:to-pink-500 hover:text-pink-900 transition-all duration-200 transform hover:scale-105 text-lg z-10">
                       Chat Now
                     </button>
                   </div>
@@ -477,7 +546,7 @@ const Dashboard = () => {
                   Application Tracker
                 </h1>
                 <button
-                  className="flex items-center space-x-2 px-4 py-2 bg-[#e61c71] text-white rounded-lg hover:bg-pink-600 transition-all duration-200 transform hover:scale-105 font-semibold"
+                  className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-slate-900 to-slate-700 text-white rounded-lg hover:from-slate-800 hover:to-slate-600 transition-all duration-200 transform hover:scale-105 font-semibold"
                   onClick={() => setFilterOpen((prev) => !prev)}
                 >
                   <Filter size={16} />
@@ -538,7 +607,7 @@ const Dashboard = () => {
                     />
                   </div>
                   <button
-                    className="ml-auto bg-pink-100 text-[#e61c71] px-4 py-2 rounded font-semibold hover:bg-pink-200 transition self-end"
+                    className="ml-auto bg-slate-100 text-slate-900 px-4 py-2 rounded font-semibold hover:bg-slate-200 transition self-end"
                     onClick={() => { setFilterCompany(''); setFilterTitle(''); setFilterStatus(''); setFilterSalary(''); setFilterDate(''); }}
                   >
                     Clear

@@ -68,8 +68,8 @@ export default function BillingPage() {
 
         {/* Pricing Plans - When user has no plan */}
         {!userHasPlan && (
-          <div className="mb-16">
-            <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-xl border border-slate-200/50 p-8 lg:p-12">
+          <div className="mb-8">
+            <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-xl border border-slate-200/50 px-4 py-2 lg:px-6 lg:py-3">
               <Pricing showPayButton={true} />
             </div>
           </div>
