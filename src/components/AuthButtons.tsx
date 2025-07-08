@@ -1,5 +1,5 @@
 "use client";
-import { signInWithGoogle, signOut } from "../lib/auth";
+import { signInWithGoogle, signOut } from "../../lib/auth-actions";
 import { useState } from "react";
 
 export default function AuthButtons() {
