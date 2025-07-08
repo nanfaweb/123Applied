@@ -5,7 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Inter } from 'next/font/google';
 import { useRouter } from 'next/navigation';
-import { supabase } from '../../../lib/supabaseClient';
+import { createClient } from '@/utils/supabase/client';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -24,6 +24,7 @@ export default function SignUp() {
   const [loading, setLoading] = useState(false);
   const [googleAttempted, setGoogleAttempted] = useState(false);
   const router = useRouter();
+  const supabase = createClient();
 
   const handleNext = () => {
     setIsTransitioning(true);
@@ -74,7 +75,7 @@ export default function SignUp() {
       return;
     }
     setLoading(true);
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -86,6 +87,7 @@ export default function SignUp() {
       setError(error.message);
       return;
     }
+    console.log('Manual sign up successful:', data.user);
     router.push('/dashboard');
   };
 
@@ -97,7 +99,7 @@ export default function SignUp() {
       return;
     }
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) {
       if (error.message === 'Invalid login credentials') {
@@ -111,6 +113,7 @@ export default function SignUp() {
       setError('Unable to sign in. Please check your details and try again.');
       return;
     }
+    console.log('Manual login successful:', data.user);
     router.push('/dashboard');
   };
 
@@ -122,6 +125,8 @@ export default function SignUp() {
     setLoading(false);
     if (error) {
       setError(error.message);
+    } else {
+      console.log('Google sign in initiated. Awaiting redirect...');
     }
   };
 
@@ -148,6 +153,7 @@ export default function SignUp() {
       if (user) {
         try {
           // Supabase user profile syncing logic removed. File retained for reference.
+          console.log('Google sign in successful:', user);
           router.push('/dashboard');
         } catch (err) {
           setError((err as Error).message || 'Error syncing Google user.');
@@ -205,6 +211,7 @@ export default function SignUp() {
                 width={180}
                 height={48}
                 className="mx-auto"
+                style={{ height: 'auto' }}
               />
             </Link>
 

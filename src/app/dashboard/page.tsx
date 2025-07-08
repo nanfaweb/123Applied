@@ -20,8 +20,21 @@ import {
   Briefcase
 } from 'lucide-react';
 import Image from "next/image";
+import { useUser } from '../../context/UserContext';
+import { useRouter } from 'next/navigation';
+import { createClient } from '@/utils/supabase/client';
 
 const Dashboard = () => {
+  const { user, loading } = useUser();
+  const router = useRouter();
+  const supabase = createClient();
+
+  React.useEffect(() => {
+    if (!loading && !user) {
+      router.replace('/signup');
+    }
+  }, [user, loading, router]);
+
   const [activeTab, setActiveTab] = useState('dashboard');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
@@ -159,6 +172,16 @@ const Dashboard = () => {
     </svg>
   );
 
+  const handleSignOut = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      console.error('Sign out error:', error.message);
+    } else {
+      console.log('User signed out successfully');
+      router.replace('/signup');
+    }
+  };
+
   const filteredApplications = applications.filter(app => {
     const statusMatch = filterStatus ? app.status.toLowerCase().includes(filterStatus.toLowerCase()) : true;
     const companyMatch = filterCompany ? app.company.toLowerCase().includes(filterCompany.toLowerCase()) : true;
@@ -198,7 +221,7 @@ return (
       <div className="w-64 bg-white shadow-lg">
         <div className="p-4">
           <div className="flex items-center justify-center">
-            <Image src="/logo2.png" alt="JobTracker Logo" width={80} height={80} className="h-20 w-auto mx-auto" priority />
+            <Image src="/logo2.png" alt="JobTracker Logo" width={80} height={80} className="h-20 w-auto mx-auto" priority style={{ width: 'auto' }} />
           </div>
         </div>
         
@@ -268,7 +291,7 @@ return (
                   <Settings size={16} />
                   <span>Settings</span>
                 </a>
-                <button type="button" className="w-full flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-b-lg transition-colors border-t">
+                <button type="button" className="w-full flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-b-lg transition-colors border-t cursor-pointer" onClick={handleSignOut}>
                   <LogOut size={16} />
                   <span>Sign Out</span>
                 </button>

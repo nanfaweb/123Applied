@@ -4,6 +4,8 @@ import { Camera, MapPin, Building, Briefcase, User, Mail, Save, LogOut, Trash2, 
 import Image from 'next/image';
 
 import Link from 'next/link';
+import { useUser } from '../../../context/UserContext';
+import { useRouter } from 'next/navigation';
 
 
 type Profile = {
@@ -21,6 +23,15 @@ type Preferences = {
 type PreferenceType = keyof Preferences;
 
 export default function ProfileSettings() {
+  const { user, loading } = useUser();
+  const router = useRouter();
+
+  React.useEffect(() => {
+    if (!loading && !user) {
+      router.replace('/signup');
+    }
+  }, [user, loading, router]);
+
   const [profile, setProfile] = useState<Profile>({
     fullName: 'John Doe',
     email: 'john.doe@example.com',

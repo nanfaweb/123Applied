@@ -3,6 +3,8 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import Pricing from "../../../components/Pricing";
+import { useUser } from '../../../context/UserContext';
+import { useRouter } from 'next/navigation';
 
 // Pricing plan names and tiers from Pricing component
 const userHasPlan = false; // Change to true to preview the other state
@@ -39,6 +41,15 @@ const faqs = [
 ];
 
 export default function BillingPage() {
+  const { user, loading } = useUser();
+  const router = useRouter();
+
+  React.useEffect(() => {
+    if (!loading && !user) {
+      router.replace('/signup');
+    }
+  }, [user, loading, router]);
+
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   return (
