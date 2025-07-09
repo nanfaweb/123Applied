@@ -7,7 +7,7 @@ import { useUser } from '../../../context/UserContext';
 import { useRouter } from 'next/navigation';
 
 // Pricing plan names and tiers from Pricing component
-const userHasPlan = false; // Change to true to preview the other state
+const userHasPlan = 1; // Change to true to preview the other state
 const studentTiers = [
   { name: 'Student', submissions: 25, price: 39.99 },
   { name: 'Student Plus', submissions: 50, price: 69.99 },

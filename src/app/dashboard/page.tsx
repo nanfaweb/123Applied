@@ -35,16 +35,13 @@ interface Application {
   salary?: string | null;
 }
 interface Company {
-  company: string;
-  count?: number;
+  company_name: string;
 }
 interface Location {
-  city: string;
-  count?: number;
+  location_name: string;
 }
 interface Role {
-  role: string;
-  count?: number;
+  job_title: string;
 }
 interface UserPlan {
   id: string;
@@ -63,7 +60,31 @@ const Dashboard = () => {
   const router = useRouter();
   const supabase = createClient();
 
+  // State for user's full name from profiles table
+  const [profileName, setProfileName] = useState<string>("");
+
+  // Fetch user's name from profiles table
+  useEffect(() => {
+    const fetchProfileName = async () => {
+      if (!user) return;
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('id', user.id)
+        .single();
+      if (!error && data && data.full_name) {
+        setProfileName(data.full_name);
+      }
+    };
+    if (user) fetchProfileName();
+  }, [user, supabase]);
+
   React.useEffect(() => {
+    if (!loading && user) {
+      const fullName = user.user_metadata?.full_name || user.user_metadata?.name || 'N/A';
+      const email = user.email || 'N/A';
+      console.log(`Logged in user: ${fullName} (${email})`);
+    }
     if (!loading && !user) {
       router.replace('/signup');
     }
@@ -144,24 +165,24 @@ const Dashboard = () => {
       // Fetch preferences
       const { data: jobs, error: jobsError } = await supabase
         .from('user_jobs')
-        .select('*')
+        .select('job_title')
         .eq('user_id', user.id);
       const { data: locations, error: locationsError } = await supabase
         .from('user_locations')
-        .select('*')
+        .select('location_name')
         .eq('user_id', user.id);
       const { data: companies, error: companiesError } = await supabase
         .from('user_companies')
-        .select('*')
+        .select('company_name')
         .eq('user_id', user.id);
       if (jobsError || locationsError || companiesError) {
         setPreferredLocations([]);
         setPreferredCompanies([]);
         setPreferredRoles([]);
       } else {
-        setPreferredLocations((locations as Location[]) || []);
-        setPreferredCompanies((companies as Company[]) || []);
-        setPreferredRoles((jobs as Role[]) || []);
+        setPreferredLocations(locations || []);
+        setPreferredCompanies(companies || []);
+        setPreferredRoles(jobs || []);
       }
       // Fetch user plan
       const { data: plans, error: plansError } = await supabase
@@ -508,14 +529,7 @@ return (
             >
               <div className="flex items-center space-x-3">
                 <User size={20} />
-                <span className="font-medium">{(() => {
-                  const fullName = user?.user_metadata?.full_name;
-                  if (fullName) {
-                    const words = fullName.trim().split(/\s+/).slice(0, 2);
-                    return words.join(' ');
-                  }
-                  return user?.email || 'User';
-                })()}</span>
+                <span className="font-medium">{profileName ? profileName.split(/\s+/).slice(0, 2).join(' ') : (user?.email || 'User')}</span>
               </div>
               <ChevronDown size={16} className={`transition-transform duration-200 ${userDropdownOpen ? 'rotate-180' : ''}`} />
             </button>
@@ -555,14 +569,9 @@ return (
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
                       <div>
                         <h2 className="font-playfair text-[2.4rem] font-bold text-black mb-2 flex items-center gap-2 max-md:text-[1.6rem] max-sm:text-[1.2rem] whitespace-nowrap italic bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
-                          {(() => {
-                            const fullName = user?.user_metadata?.full_name;
-                            if (fullName) {
-                              const words = fullName.trim().split(/\s+/).slice(0, 2);
-                              return `Welcome back, ${words.join(' ')}.`;
-                            }
-                            return `Welcome back, ${user?.email || 'User'}.`;
-                          })()}
+                          {profileName
+                            ? `Welcome back, ${profileName.split(/\s+/).slice(0, 2).join(' ')}.`
+                            : `Welcome back, ${user?.email || 'User'}.`}
                         </h2>
                         <p className="text-gray-600 mb-2">Track your job applications and manage your career journey</p>
                         <div className="text-sm text-black flex items-center gap-2 mt-1">
@@ -611,7 +620,7 @@ return (
                         <Upload size={18} className="mr-2 text-[#e61c71]" />
                         Upload Resume
                       </h3>
-                      <div className="border-2 border-dashed border-[#e61c71] rounded-lg p-4 text-center hover:border-pink-400 transition-colors">
+                      <div className="border-2 border-dashed border-[#e61c71] rounded-lg p-4 text-center hover:border-pink-400 transition-colors" style={{ maxHeight: '200px' }}>
                         <Upload size={32} className="mx-auto text-gray-400 mb-2" />
                         <div className="mb-3">
                           <p className="text-sm text-gray-600 mb-1">PDF format</p>
@@ -619,7 +628,16 @@ return (
                             <p className="text-xs text-green-600">✓ {selectedFile.name}</p>
                           )}
                           {resumeUrl && !selectedFile && (
-                            <p className="text-xs text-blue-600">Current: <a href={resumeUrl} target="_blank" rel="noopener noreferrer" className="underline">View Resume</a>
+                            <p className="text-xs text-blue-600">
+                              Current: {(() => {
+                                try {
+                                  const urlParts = resumeUrl.split('/');
+                                  const rawName = urlParts[urlParts.length - 1].split('_').slice(1).join('_');
+                                  return decodeURIComponent(rawName);
+                                } catch {
+                                  return 'Resume.pdf';
+                                }
+                              })()}
                               <button
                                 type="button"
                                 className="ml-2 text-red-500 underline hover:text-red-700 disabled:opacity-50"
@@ -653,13 +671,16 @@ return (
                     </div>
 
                     {/* LinkedIn Connection - Smaller */}
-                    <div className="bg-white rounded-xl shadow-sm p-4">
+                    <div className="bg-white rounded-xl shadow-sm p-4" style={{ maxHeight: '235px' }}>
                       <h3 className="text-base font-semibold text-gray-800 mb-3 flex items-center">
                         <LinkedInIcon />
                         <span className="ml-2">Connect LinkedIn</span>
                       </h3>
                       <div className="text-center min-h-[100px]">
                         <p className="text-sm text-gray-600 mb-3 mt-16">Import professional info</p>
+                        {linkedInUrl && !showLinkedInInput && (
+                          <div className="mt-2 text-xs text-gray-600 break-all mb-2">Current: <a href={linkedInUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">{linkedInUrl}</a></div>
+                        )}
                         {showLinkedInInput ? (
                           <div className="flex flex-col items-center gap-2">
                             <input
@@ -697,9 +718,6 @@ return (
                             <LinkedInWhiteIcon />
                             <span className="ml-2">{linkedInUrl ? 'Edit LinkedIn URL' : 'Connect'}</span>
                           </button>
-                        )}
-                        {linkedInUrl && !showLinkedInInput && (
-                          <div className="mt-2 text-xs text-gray-600 break-all">Current: <a href={linkedInUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">{linkedInUrl}</a></div>
                         )}
                       </div>
                     </div>
@@ -751,7 +769,7 @@ return (
                 {/* Right Column - Side Panels */}
                 <div className="space-y-6">
                   {/* Preferred Locations */}
-                  <div className="bg-gradient-to-r from-slate-900 to-slate-700 rounded-xl shadow-sm p-4 min-h-0 animate-in fade-in slide-in-from-right-4 duration-700 delay-300">
+                  <div className="bg-gradient-to-r from-slate-900 to-slate-700 rounded-xl shadow-sm p-4 animate-in fade-in slide-in-from-right-4 duration-700 delay-300" style={{ minHeight: '170px' }}>
                     <div className="flex items-center mb-4 justify-between">
                       <div className="flex items-center">
                         <MapPin size={18} className="text-[#e61c71] mr-2" />
@@ -766,35 +784,29 @@ return (
                       </button>
                     </div>
                     <div className="space-y-3">
-                      <div
-                        className={`space-y-3 pr-2`}
-                        style={{ maxHeight: '92px', overflowY: 'auto' }}
-                      >
-                        {preferredLocations.length === 0 ? (
-                          <div className="text-center text-gray-300 py-4">
-                            <MapPin size={24} className="mx-auto mb-1" />
-                            <div className="font-semibold">No preferred locations selected</div>
-                            <div className="text-xs">Add locations to personalize your job search.</div>
-                          </div>
-                        ) : (
-                          preferredLocations.map((location, index) => (
+                      {preferredLocations.length === 0 ? (
+                        <div className="text-center text-gray-300 py-4">
+                          <MapPin size={24} className="mx-auto mb-1" />
+                          <div className="font-semibold">No preferred locations selected</div>
+                          <div className="text-xs">Add locations to personalize your job search.</div>
+                        </div>
+                      ) : (
+                        <div className="space-y-3 pr-2" style={{ maxHeight: '92px', overflowY: 'auto' }}>
+                          {preferredLocations.map((location, index) => (
                             <div
                               key={index}
                               className="flex justify-between items-center group hover:bg-pink-900/30 p-2 rounded transition-colors"
                             >
-                              <span className="text-sm text-white group-hover:text-pink-300">{index + 1}. {location.city}</span>
-                              <span className="bg-pink-100 text-[#e61c71] px-2 py-1 rounded-full text-xs font-medium group-hover:bg-pink-200 group-hover:text-pink-700">
-                                {location.count}
-                              </span>
+                              <span className="text-sm text-white group-hover:text-pink-300">{index + 1}. {location.location_name}</span>
                             </div>
-                          ))
-                        )}
-                      </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
 
                   {/* Preferred Companies */}
-                  <div className="bg-gradient-to-r from-slate-900 to-slate-700 rounded-xl shadow-sm p-4 min-h-0 animate-in fade-in slide-in-from-right-4 duration-700 delay-400">
+                  <div className="bg-gradient-to-r from-slate-900 to-slate-700 rounded-xl shadow-sm p-4 animate-in fade-in slide-in-from-right-4 duration-700 delay-400" style={{ minHeight: '170px' }}>
                     <div className="flex items-center mb-4 justify-between">
                       <div className="flex items-center">
                         <Building2 size={18} className="text-[#e61c71] mr-2" />
@@ -808,7 +820,7 @@ return (
                         Edit
                       </button>
                     </div>
-                    <div className="space-y-3 pr-2" style={{ maxHeight: '92px', overflowY: 'auto' }}>
+                    <div className="space-y-3">
                       {preferredCompanies.length === 0 ? (
                         <div className="text-center text-gray-300 py-4">
                           <Building2 size={24} className="mx-auto mb-1" />
@@ -816,23 +828,22 @@ return (
                           <div className="text-xs">Add companies to personalize your job search.</div>
                         </div>
                       ) : (
-                        preferredCompanies.map((company, index) => (
-                          <div
-                            key={index}
-                            className="flex justify-between items-center group hover:bg-pink-900/30 p-2 rounded transition-colors"
-                          >
-                            <span className="text-sm text-white group-hover:text-pink-300">{index + 1}. {company.company}</span>
-                            <span className="bg-pink-100 text-[#e61c71] px-2 py-1 rounded-full text-xs font-medium group-hover:bg-pink-200 group-hover:text-pink-700">
-                              {company.count}
-                            </span>
-                          </div>
-                        ))
+                        <div className="space-y-3 pr-2" style={{ maxHeight: '92px', overflowY: 'auto' }}>
+                          {preferredCompanies.map((company, index) => (
+                            <div
+                              key={index}
+                              className="flex justify-between items-center group hover:bg-pink-900/30 p-2 rounded transition-colors"
+                            >
+                              <span className="text-sm text-white group-hover:text-pink-300">{index + 1}. {company.company_name}</span>
+                            </div>
+                          ))}
+                        </div>
                       )}
                     </div>
                   </div>
 
                   {/* Preferred Roles */}
-                  <div className="bg-gradient-to-r from-slate-900 to-slate-700 rounded-xl shadow-sm p-4 min-h-0 animate-in fade-in slide-in-from-right-4 duration-700 delay-500">
+                  <div className="bg-gradient-to-r from-slate-900 to-slate-700 rounded-xl shadow-sm p-4 animate-in fade-in slide-in-from-right-4 duration-700 delay-500" style={{ minHeight: '170px' }}>
                     <div className="flex items-center mb-4 justify-between">
                       <div className="flex items-center">
                         <Briefcase size={18} className="text-[#e61c71] mr-2" />
@@ -846,7 +857,7 @@ return (
                         Edit
                       </button>
                     </div>
-                    <div className="space-y-3 pr-2" style={{ maxHeight: '92px', overflowY: 'auto' }}>
+                    <div className="space-y-3">
                       {preferredRoles.length === 0 ? (
                         <div className="text-center text-gray-300 py-4">
                           <Briefcase size={24} className="mx-auto mb-1" />
@@ -854,25 +865,22 @@ return (
                           <div className="text-xs">Add roles to personalize your job search.</div>
                         </div>
                       ) : (
-                        preferredRoles.map((role, index) => (
-                          <div
-                            key={index}
-                            className="flex justify-between items-center group hover:bg-pink-900/30 p-2 rounded transition-colors"
-                          >
-                            <span className="text-sm text-white group-hover:text-pink-300">{index + 1}. {role.role}</span>
-                            {role.count !== undefined && (
-                              <span className="bg-pink-100 text-[#e61c71] px-2 py-1 rounded-full text-xs font-medium group-hover:bg-pink-200 group-hover:text-pink-700">
-                                {role.count}
-                              </span>
-                            )}
-                          </div>
-                        ))
+                        <div className="space-y-3 pr-2" style={{ maxHeight: '92px', overflowY: 'auto' }}>
+                          {preferredRoles.map((role, index) => (
+                            <div
+                              key={index}
+                              className="flex justify-between items-center group hover:bg-pink-900/30 p-2 rounded transition-colors"
+                            >
+                              <span className="text-sm text-white group-hover:text-pink-300">{index + 1}. {role.job_title}</span>
+                            </div>
+                          ))}
+                        </div>
                       )}
                     </div>
                   </div>
 
                   {/* Support Section - Button Bottom Left, Centered Text (Chat) */}
-                  <div className="bg-gradient-to-br from-pink-500 via-[#e61c71] to-pink-400 rounded-2xl p-4 min-h-[230px] text-white shadow-lg animate-in fade-in slide-in-from-bottom-4 duration-700 delay-400 flex flex-col justify-between relative overflow-hidden">
+                  <div className="bg-gradient-to-br from-pink-500 via-[#e61c71] to-pink-400 rounded-2xl p-4 min-h-[240px] text-white shadow-lg animate-in fade-in slide-in-from-bottom-4 duration-700 delay-400 flex flex-col justify-between relative overflow-hidden" style={{ maxHeight: '240px' }}>
                     {/* Decorative chat icon */}
                     <div className="absolute right-6 bottom-6 opacity-20 text-white pointer-events-none select-none">
                       <MessageCircle size={80} />
