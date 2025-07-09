@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import { 
   Home, 
@@ -24,6 +24,40 @@ import { useUser } from '../../context/UserContext';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/utils/supabase/client';
 
+// Add types for Supabase data
+interface Application {
+  id: string;
+  jobTitle: string;
+  company: string;
+  dateApplied: string;
+  status: string;
+  actions?: string;
+  salary?: string | null;
+}
+interface Company {
+  company: string;
+  count?: number;
+}
+interface Location {
+  city: string;
+  count?: number;
+}
+interface Role {
+  role: string;
+  count?: number;
+}
+interface UserPlan {
+  id: string;
+  user_id: string;
+  plan_id: string;
+  resumes_remaining: number;
+  letters_remaining: number;
+  activated_at: string;
+  stripe_checkout_id?: string;
+  letters_used?: number;
+  resumes_used?: number;
+}
+
 const Dashboard = () => {
   const { user, loading } = useUser();
   const router = useRouter();
@@ -46,6 +80,129 @@ const Dashboard = () => {
   const [filterDate, setFilterDate] = useState('');
   // Profile/settings state removed
 
+  const [applications, setApplications] = useState<Application[]>([]);
+  const [preferredLocations, setPreferredLocations] = useState<Location[]>([]);
+  const [preferredCompanies, setPreferredCompanies] = useState<Company[]>([]);
+  const [preferredRoles, setPreferredRoles] = useState<Role[]>([]);
+  const [stats, setStats] = useState({ totalApplications: 0, submitted: 0, progress: 0 });
+  const [userPlan, setUserPlan] = useState<UserPlan | null>(null);
+  const [planStats, setPlanStats] = useState<{ lettersTotal: number; lettersRemaining: number; resumesTotal: number; resumesRemaining: number; percent: number }>({ lettersTotal: 0, lettersRemaining: 0, resumesTotal: 0, resumesRemaining: 0, percent: 0 });
+  const [showLinkedInInput, setShowLinkedInInput] = useState(false);
+  const [linkedInUrl, setLinkedInUrl] = useState('');
+  const [linkedInLoading, setLinkedInLoading] = useState(false);
+  const [linkedInSuccess, setLinkedInSuccess] = useState(false);
+  const [linkedInError, setLinkedInError] = useState('');
+  const [resumeLoading, setResumeLoading] = useState(false);
+  const [resumeSuccess, setResumeSuccess] = useState(false);
+  const [resumeError, setResumeError] = useState('');
+  const [resumeUrl, setResumeUrl] = useState('');
+  const [resumeRemoving, setResumeRemoving] = useState(false);
+
+  // Fetch LinkedIn URL for user on mount
+  useEffect(() => {
+    const fetchLinkedIn = async () => {
+      if (!user) return;
+      const { data } = await supabase
+        .from('docs')
+        .select('external_url')
+        .eq('user_id', user.id)
+        .single();
+      if (data && data.external_url) setLinkedInUrl(data.external_url);
+    };
+    if (user) fetchLinkedIn();
+  }, [user, supabase]);
+
+  // Fetch resume file_url for user on mount
+  useEffect(() => {
+    const fetchResume = async () => {
+      if (!user) return;
+      const { data } = await supabase
+        .from('docs')
+        .select('file_url')
+        .eq('user_id', user.id)
+        .single();
+      if (data && data.file_url) setResumeUrl(data.file_url);
+    };
+    if (user) fetchResume();
+  }, [user, supabase]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!user) return;
+      // Fetch applications
+      const { data: apps, error: appsError } = await supabase
+        .from('applications')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('date_applied', { ascending: false });
+      if (appsError) {
+        console.error('Error fetching applications:', appsError.message);
+        setApplications([]);
+      } else {
+        setApplications((apps as Application[]) || []);
+      }
+      // Fetch preferences
+      const { data: jobs, error: jobsError } = await supabase
+        .from('user_jobs')
+        .select('*')
+        .eq('user_id', user.id);
+      const { data: locations, error: locationsError } = await supabase
+        .from('user_locations')
+        .select('*')
+        .eq('user_id', user.id);
+      const { data: companies, error: companiesError } = await supabase
+        .from('user_companies')
+        .select('*')
+        .eq('user_id', user.id);
+      if (jobsError || locationsError || companiesError) {
+        setPreferredLocations([]);
+        setPreferredCompanies([]);
+        setPreferredRoles([]);
+      } else {
+        setPreferredLocations((locations as Location[]) || []);
+        setPreferredCompanies((companies as Company[]) || []);
+        setPreferredRoles((jobs as Role[]) || []);
+      }
+      // Fetch user plan
+      const { data: plans, error: plansError } = await supabase
+        .from('user_plans')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('activated_at', { ascending: false });
+      if (plansError) {
+        setUserPlan(null);
+        setPlanStats({ lettersTotal: 0, lettersRemaining: 0, resumesTotal: 0, resumesRemaining: 0, percent: 0 });
+      } else {
+        // Find the most recent plan with remaining credits
+        const activePlan = (plans as UserPlan[] | null)?.find((p) => (p.letters_remaining > 0 || p.resumes_remaining > 0)) || (plans as UserPlan[] | null)?.[0] || null;
+        setUserPlan(activePlan);
+        if (activePlan) {
+          const lettersTotal = activePlan.letters_remaining + (activePlan.letters_used || 0);
+          const resumesTotal = activePlan.resumes_remaining + (activePlan.resumes_used || 0);
+          const percent = lettersTotal > 0 ? Math.round(((lettersTotal - activePlan.letters_remaining) / lettersTotal) * 100) : 0;
+          setPlanStats({
+            lettersTotal,
+            lettersRemaining: activePlan.letters_remaining,
+            resumesTotal,
+            resumesRemaining: activePlan.resumes_remaining,
+            percent
+          });
+        } else {
+          setPlanStats({ lettersTotal: 0, lettersRemaining: 0, resumesTotal: 0, resumesRemaining: 0, percent: 0 });
+        }
+      }
+      // Stats
+      setStats({
+        totalApplications: apps?.length || 0,
+        submitted: (apps?.filter((a: Application) => a.status === 'Submitted').length) || 0,
+        progress: 0 // You can add more logic here
+      });
+    };
+    if (user) fetchData();
+  }, [user, supabase]);
+
+  const recentApplications = applications.slice(0, 3);
+
   // Close dropdown when clicking outside
   React.useEffect(() => {
     if (!userDropdownOpen) return;
@@ -61,76 +218,149 @@ const Dashboard = () => {
   }, [userDropdownOpen]);
 
   // Placeholder data
-  const stats = {
-    totalApplications: 100,
-    submitted: 32,
-    progress: 32
-  };
+  // const stats = {
+  //   totalApplications: 100,
+  //   submitted: 32,
+  //   progress: 32
+  // };
 
-  const applications = [
-    {
-      id: 1,
-      jobTitle: 'Software Engineer',
-      company: 'ABC Corp',
-      dateApplied: '04/11/2024',
-      status: 'Submitted',
-      actions: 'Edit',
-      salary: 'USD 120,000'
-    },
-    {
-      id: 2,
-      jobTitle: 'Product Manager',
-      company: 'XYZ Inc.',
-      dateApplied: '06/11/2024',
-      status: 'In Review',
-      actions: 'Edit',
-      salary: 'USD 110,000'
-    },
-    {
-      id: 3,
-      jobTitle: 'Data Analyst',
-      company: 'Example Co.',
-      dateApplied: '04/11/2025',
-      status: 'Submitted',
-      actions: 'Edit',
-      salary: null
-    }
-  ];
+  // const applications = [
+  //   {
+  //     id: 1,
+  //     jobTitle: 'Software Engineer',
+  //     company: 'ABC Corp',
+  //     dateApplied: '04/11/2024',
+  //     status: 'Submitted',
+  //     actions: 'Edit',
+  //     salary: 'USD 120,000'
+  //   },
+  //   {
+  //     id: 2,
+  //     jobTitle: 'Product Manager',
+  //     company: 'XYZ Inc.',
+  //     dateApplied: '06/11/2024',
+  //     status: 'In Review',
+  //     actions: 'Edit',
+  //     salary: 'USD 110,000'
+  //   },
+  //   {
+  //     id: 3,
+  //     jobTitle: 'Data Analyst',
+  //     company: 'Example Co.',
+  //     dateApplied: '04/11/2025',
+  //     status: 'Submitted',
+  //     actions: 'Edit',
+  //     salary: null
+  //   }
+  // ];
 
-  const recentApplications = applications.slice(0, 3);
+  // const recentApplications = applications.slice(0, 3);
 
-  const preferredLocations = [
-    { city: 'San Francisco, CA', count: 8 },
-    { city: 'New York, NY', count: 10 },
-    { city: 'Seattle, WA', count: 14 },
-    { city: 'Austin, TX', count: 5 },
-    { city: 'Chicago, IL', count: 7 }
-  ];
+  // const preferredLocations = [
+  //   { city: 'San Francisco, CA', count: 8 },
+  //   { city: 'New York, NY', count: 10 },
+  //   { city: 'Seattle, WA', count: 14 },
+  //   { city: 'Austin, TX', count: 5 },
+  //   { city: 'Chicago, IL', count: 7 }
+  // ];
 
-  const preferredCompanies = [
-    { company: 'Google', count: 12 },
-    { company: 'Microsoft', count: 7 },
-    { company: 'Apple', count: 15 },
-    { company: 'Amazon', count: 9 },
-    { company: 'Meta', count: 8 },
-    { company: 'Netflix', count: 6 },
-    { company: 'Tesla', count: 10 },
-    { company: 'Adobe', count: 5 },
-    { company: 'Salesforce', count: 4 },
-    { company: 'IBM', count: 3 }
-  ];
+  // const preferredCompanies = [
+  //   { company: 'Google', count: 12 },
+  //   { company: 'Microsoft', count: 7 },
+  //   { company: 'Apple', count: 15 },
+  //   { company: 'Amazon', count: 9 },
+  //   { company: 'Meta', count: 8 },
+  //   { company: 'Netflix', count: 6 },
+  //   { company: 'Tesla', count: 10 },
+  //   { company: 'Adobe', count: 5 },
+  //   { company: 'Salesforce', count: 4 },
+  //   { company: 'IBM', count: 3 }
+  // ];
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file && file.type === 'application/pdf') {
-      setSelectedFile(file);
-    } else {
+    if (!file || file.type !== 'application/pdf') {
       alert('Please select a PDF file');
+      return;
+    }
+    if (!user) return;
+    setResumeLoading(true);
+    setResumeError('');
+    setResumeSuccess(false);
+    // Upload to Supabase Storage (assume bucket 'resumes')
+    const filePath = `${user.id}/${Date.now()}_${file.name}`;
+    const { error: uploadError } = await supabase.storage.from('resumes').upload(filePath, file, { upsert: true });
+    if (uploadError) {
+      setResumeLoading(false);
+      setResumeError('Failed to upload file: ' + uploadError.message);
+      return;
+    }
+    // Get public URL
+    const { data: publicUrlData } = supabase.storage.from('resumes').getPublicUrl(filePath);
+    const publicUrl = publicUrlData?.publicUrl || '';
+    // Upsert file_url in docs table
+    const { error: upsertError } = await supabase
+      .from('docs')
+      .upsert({ user_id: user.id, file_url: publicUrl }, { onConflict: 'user_id' });
+    setResumeLoading(false);
+    if (upsertError) {
+      setResumeError('Failed to save file URL.');
+    } else {
+      setResumeSuccess(true);
+      setResumeUrl(publicUrl);
+      setSelectedFile(file);
     }
   };
 
   const handleLinkedInConnect = () => {
-    alert('LinkedIn connection will be implemented with OAuth');
+    setShowLinkedInInput(true);
+  };
+
+  const handleLinkedInSave = async () => {
+    if (!user) return;
+    setLinkedInLoading(true);
+    setLinkedInError('');
+    setLinkedInSuccess(false);
+    const { error } = await supabase
+      .from('docs')
+      .upsert({ user_id: user.id, external_url: linkedInUrl }, { onConflict: 'user_id' });
+    setLinkedInLoading(false);
+    if (error) {
+      setLinkedInError('Failed to save LinkedIn URL.');
+    } else {
+      setLinkedInSuccess(true);
+      setShowLinkedInInput(false);
+    }
+  };
+
+  const handleRemoveResume = async () => {
+    if (!user || !resumeUrl) return;
+    setResumeRemoving(true);
+    setResumeError('');
+    setResumeSuccess(false);
+    // Extract file path from public URL
+    const urlParts = resumeUrl.split('/');
+    const bucketIndex = urlParts.findIndex(part => part === 'resumes');
+    const filePath = urlParts.slice(bucketIndex + 1).join('/');
+    // Remove from storage
+    const { error: removeError } = await supabase.storage.from('resumes').remove([filePath]);
+    if (removeError) {
+      setResumeRemoving(false);
+      setResumeError('Failed to remove file from storage.');
+      return;
+    }
+    // Remove file_url from docs table
+    const { error: upsertError } = await supabase
+      .from('docs')
+      .upsert({ user_id: user.id, file_url: null }, { onConflict: 'user_id' });
+    setResumeRemoving(false);
+    if (upsertError) {
+      setResumeError('Failed to update database.');
+    } else {
+      setResumeUrl('');
+      setSelectedFile(null);
+      setResumeSuccess(true);
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -221,7 +451,7 @@ return (
       <div className="w-64 bg-white shadow-lg">
         <div className="p-4">
           <div className="flex items-center justify-center">
-            <Image src="/logo2.png" alt="JobTracker Logo" width={80} height={80} className="h-20 w-auto mx-auto" priority style={{ width: 'auto' }} />
+            <Image src="/logo2.png" alt="JobTracker Logo" width={80} height={80} className="h-20 w-auto mx-auto" priority />
           </div>
         </div>
         
@@ -278,7 +508,14 @@ return (
             >
               <div className="flex items-center space-x-3">
                 <User size={20} />
-                <span className="font-medium">Ali</span>
+                <span className="font-medium">{(() => {
+                  const fullName = user?.user_metadata?.full_name;
+                  if (fullName) {
+                    const words = fullName.trim().split(/\s+/).slice(0, 2);
+                    return words.join(' ');
+                  }
+                  return user?.email || 'User';
+                })()}</span>
               </div>
               <ChevronDown size={16} className={`transition-transform duration-200 ${userDropdownOpen ? 'rotate-180' : ''}`} />
             </button>
@@ -317,8 +554,15 @@ return (
                   <div className="bg-white rounded-xl shadow-sm p-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
                       <div>
-                        <h2 className="font-playfair text-[2.4rem] font-bold text-black mb-2 flex items-center gap-2 max-md:text-[1.6rem] max-sm:text-[1.2rem] whitespace-nowrap italic">
-                          Welcome back, Ali.
+                        <h2 className="font-playfair text-[2.4rem] font-bold text-black mb-2 flex items-center gap-2 max-md:text-[1.6rem] max-sm:text-[1.2rem] whitespace-nowrap italic bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
+                          {(() => {
+                            const fullName = user?.user_metadata?.full_name;
+                            if (fullName) {
+                              const words = fullName.trim().split(/\s+/).slice(0, 2);
+                              return `Welcome back, ${words.join(' ')}.`;
+                            }
+                            return `Welcome back, ${user?.email || 'User'}.`;
+                          })()}
                         </h2>
                         <p className="text-gray-600 mb-2">Track your job applications and manage your career journey</p>
                         <div className="text-sm text-black flex items-center gap-2 mt-1">
@@ -328,18 +572,33 @@ return (
                       </div>
                       <div className="text-right mt-4 md:mt-0">
                         <div className="text-4xl font-bold text-black mb-1">
-                          <span className="text-[#d1005f]">{stats.submitted}</span> of {stats.totalApplications}
+                          {userPlan ? (
+                            <>
+                              <span className="text-[#d1005f]">{planStats.lettersTotal - planStats.lettersRemaining}</span> of {planStats.lettersTotal} Letters Used
+                            </>
+                          ) : (
+                            <span className="text-[#d1005f]">No plan active</span>
+                          )}
                         </div>
-                        <div className="text-sm text-black">Applications Submitted</div>
-                        <div className="text-lg font-semibold text-black mt-1">
-                          {((stats.submitted / stats.totalApplications) * 100).toFixed(0)}% Completed
-                        </div>
+                        {userPlan ? (
+                          <>
+                            <div className="text-sm text-black">{planStats.lettersRemaining} Letters Remaining</div>
+                            <div className="text-lg font-semibold text-black mt-1">{planStats.percent}% Completed</div>
+                          </>
+                        ) : (
+                          <div
+                            className="text-sm text-black cursor-pointer hover:underline"
+                            onClick={() => router.push('/dashboard/billing')}
+                          >
+                            Purchase a plan to get started!
+                          </div>
+                        )}
                       </div>
                     </div>
                     <div className="w-full bg-pink-100 rounded-full h-3 mb-4">
-                      <div 
+                      <div
                         className="bg-gradient-to-r from-pink-500 to-[#e61c71] h-3 rounded-full transition-all duration-1000 ease-out"
-                        style={{ width: `${(stats.submitted / stats.totalApplications) * 100}%` }}
+                        style={{ width: `${userPlan && planStats.lettersTotal > 0 ? Math.min(100, Math.round((stats.submitted / planStats.lettersTotal) * 100)) : 0}%` }}
                       ></div>
                     </div>
                   </div>
@@ -359,6 +618,21 @@ return (
                           {selectedFile && (
                             <p className="text-xs text-green-600">✓ {selectedFile.name}</p>
                           )}
+                          {resumeUrl && !selectedFile && (
+                            <p className="text-xs text-blue-600">Current: <a href={resumeUrl} target="_blank" rel="noopener noreferrer" className="underline">View Resume</a>
+                              <button
+                                type="button"
+                                className="ml-2 text-red-500 underline hover:text-red-700 disabled:opacity-50"
+                                onClick={handleRemoveResume}
+                                disabled={resumeLoading || resumeRemoving}
+                              >
+                                {resumeRemoving ? 'Removing...' : 'Remove'}
+                              </button>
+                            </p>
+                          )}
+                          {resumeLoading && <p className="text-xs text-gray-500">Uploading...</p>}
+                          {resumeError && <p className="text-xs text-red-500">{resumeError}</p>}
+                          {resumeSuccess && <p className="text-xs text-green-600">Resume uploaded!</p>}
                         </div>
                         <input
                           type="file"
@@ -366,6 +640,7 @@ return (
                           onChange={handleFileUpload}
                           className="hidden"
                           id="resume-upload"
+                          disabled={resumeLoading || resumeRemoving}
                         />
                         <label
                           htmlFor="resume-upload"
@@ -383,21 +658,55 @@ return (
                         <LinkedInIcon />
                         <span className="ml-2">Connect LinkedIn</span>
                       </h3>
-                      <div className="text-center">
+                      <div className="text-center min-h-[100px]">
                         <p className="text-sm text-gray-600 mb-3 mt-16">Import professional info</p>
-                        <button
-                          onClick={handleLinkedInConnect}
-                          className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-slate-900 to-slate-700 text-white text-sm rounded-lg hover:from-slate-800 hover:to-slate-600 transition-all duration-200 transform hover:scale-105"
-                        >
-                          <LinkedInWhiteIcon />
-                          <span className="ml-2">Connect</span>
-                        </button>
+                        {showLinkedInInput ? (
+                          <div className="flex flex-col items-center gap-2">
+                            <input
+                              type="url"
+                              placeholder="Enter LinkedIn profile URL"
+                              value={linkedInUrl}
+                              onChange={e => setLinkedInUrl(e.target.value)}
+                              className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-200 text-gray-800 placeholder-gray-400 w-full max-w-xs"
+                              disabled={linkedInLoading}
+                            />
+                            <div className="flex gap-2 mt-2">
+                              <button
+                                onClick={handleLinkedInSave}
+                                className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-slate-900 to-slate-700 text-white text-sm rounded-lg hover:from-slate-800 hover:to-slate-600 transition-all duration-200 transform hover:scale-105"
+                                disabled={linkedInLoading || !linkedInUrl}
+                              >
+                                {linkedInLoading ? 'Saving...' : 'Save'}
+                              </button>
+                              <button
+                                onClick={() => setShowLinkedInInput(false)}
+                                className="inline-flex items-center px-4 py-2 bg-gray-200 text-gray-700 text-sm rounded-lg hover:bg-gray-300 transition-all duration-200"
+                                disabled={linkedInLoading}
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                            {linkedInError && <div className="text-red-500 text-xs mt-1">{linkedInError}</div>}
+                            {linkedInSuccess && <div className="text-green-600 text-xs mt-1">LinkedIn URL saved!</div>}
+                          </div>
+                        ) : (
+                          <button
+                            onClick={handleLinkedInConnect}
+                            className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-slate-900 to-slate-700 text-white text-sm rounded-lg hover:from-slate-800 hover:to-slate-600 transition-all duration-200 transform hover:scale-105"
+                          >
+                            <LinkedInWhiteIcon />
+                            <span className="ml-2">{linkedInUrl ? 'Edit LinkedIn URL' : 'Connect'}</span>
+                          </button>
+                        )}
+                        {linkedInUrl && !showLinkedInInput && (
+                          <div className="mt-2 text-xs text-gray-600 break-all">Current: <a href={linkedInUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">{linkedInUrl}</a></div>
+                        )}
                       </div>
                     </div>
                   </div>
 
                   {/* Application Tracker Section */}
-                  <div className="bg-white rounded-xl shadow-sm p-6 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300">
+                  <div className="bg-white rounded-xl shadow-sm p-6 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300 h-[325px]">
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="text-lg font-semibold text-gray-800 flex items-center">
                         <Briefcase size={20} className="mr-2 text-[#e61c71]" />
@@ -413,20 +722,28 @@ return (
                     </div>
                     
                     <div className="space-y-3">
-                      {recentApplications.map((app, index) => (
-                        <div key={app.id} className={`flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors animate-in slide-in-from-left-4 duration-500`} style={{animationDelay: `${index * 100}ms`}}>
-                          <div>
-                            <div className="font-medium text-gray-800">{app.jobTitle}</div>
-                            <div className="text-sm text-gray-600">{app.company}</div>
-                          </div>
-                          <div className="text-right">
-                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(app.status)}`}>
-                              {app.status}
-                            </span>
-                            <div className="text-xs text-gray-500 mt-1">{app.dateApplied}</div>
-                          </div>
+                      {recentApplications.length === 0 ? (
+                        <div className="text-center text-gray-400 py-8">
+                          <Briefcase size={32} className="mx-auto mb-2 text-gray-300" />
+                          <div className="font-semibold">No recent applications yet</div>
+                          <div className="text-sm">Start applying to jobs and your recent applications will show up here.</div>
                         </div>
-                      ))}
+                      ) : (
+                        recentApplications.map((app, index) => (
+                          <div key={app.id} className={`flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors animate-in slide-in-from-left-4 duration-500`} style={{animationDelay: `${index * 100}ms`}}>
+                            <div>
+                              <div className="font-medium text-gray-800">{app.jobTitle}</div>
+                              <div className="text-sm text-gray-600">{app.company}</div>
+                            </div>
+                            <div className="text-right">
+                              <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(app.status)}`}>
+                                {app.status}
+                              </span>
+                              <div className="text-xs text-gray-500 mt-1">{app.dateApplied}</div>
+                            </div>
+                          </div>
+                        ))
+                      )}
                     </div>
                   </div>
                 </div>
@@ -443,6 +760,7 @@ return (
                       <button
                         className="text-[#e61c71] hover:text-pink-700 text-sm font-bold flex items-center transition-colors mr-2"
                         type="button"
+                        onClick={() => router.push('/dashboard/settings#preferences')}
                       >
                         Edit
                       </button>
@@ -450,19 +768,27 @@ return (
                     <div className="space-y-3">
                       <div
                         className={`space-y-3 pr-2`}
-                        style={{ maxHeight: '92px', overflowY: 'auto', scrollbarWidth: 'thin', scrollbarColor: '#e61c71 #f3f4f6' }}
+                        style={{ maxHeight: '92px', overflowY: 'auto' }}
                       >
-                        {preferredLocations.map((location, index) => (
-                          <div
-                            key={index}
-                            className="flex justify-between items-center group hover:bg-pink-900/30 p-2 rounded transition-colors"
-                          >
-                            <span className="text-sm text-white group-hover:text-pink-300">{index + 1}. {location.city}</span>
-                            <span className="bg-pink-100 text-[#e61c71] px-2 py-1 rounded-full text-xs font-medium group-hover:bg-pink-200 group-hover:text-pink-700">
-                              {location.count}
-                            </span>
+                        {preferredLocations.length === 0 ? (
+                          <div className="text-center text-gray-300 py-4">
+                            <MapPin size={24} className="mx-auto mb-1" />
+                            <div className="font-semibold">No preferred locations selected</div>
+                            <div className="text-xs">Add locations to personalize your job search.</div>
                           </div>
-                        ))}
+                        ) : (
+                          preferredLocations.map((location, index) => (
+                            <div
+                              key={index}
+                              className="flex justify-between items-center group hover:bg-pink-900/30 p-2 rounded transition-colors"
+                            >
+                              <span className="text-sm text-white group-hover:text-pink-300">{index + 1}. {location.city}</span>
+                              <span className="bg-pink-100 text-[#e61c71] px-2 py-1 rounded-full text-xs font-medium group-hover:bg-pink-200 group-hover:text-pink-700">
+                                {location.count}
+                              </span>
+                            </div>
+                          ))
+                        )}
                       </div>
                     </div>
                   </div>
@@ -477,22 +803,31 @@ return (
                       <button
                         className="text-[#e61c71] hover:text-pink-700 text-sm font-bold flex items-center transition-colors mr-2"
                         type="button"
+                        onClick={() => router.push('/dashboard/settings#preferences')}
                       >
                         Edit
                       </button>
                     </div>
-                    <div className="space-y-3 pr-2" style={{ maxHeight: '92px', overflowY: 'auto', scrollbarWidth: 'thin', scrollbarColor: '#e61c71 #f3f4f6' }}>
-                      {preferredCompanies.map((company, index) => (
-                        <div
-                          key={index}
-                          className="flex justify-between items-center group hover:bg-pink-900/30 p-2 rounded transition-colors"
-                        >
-                          <span className="text-sm text-white group-hover:text-pink-300">{index + 1}. {company.company}</span>
-                          <span className="bg-pink-100 text-[#e61c71] px-2 py-1 rounded-full text-xs font-medium group-hover:bg-pink-200 group-hover:text-pink-700">
-                            {company.count}
-                          </span>
+                    <div className="space-y-3 pr-2" style={{ maxHeight: '92px', overflowY: 'auto' }}>
+                      {preferredCompanies.length === 0 ? (
+                        <div className="text-center text-gray-300 py-4">
+                          <Building2 size={24} className="mx-auto mb-1" />
+                          <div className="font-semibold">No preferred companies selected</div>
+                          <div className="text-xs">Add companies to personalize your job search.</div>
                         </div>
-                      ))}
+                      ) : (
+                        preferredCompanies.map((company, index) => (
+                          <div
+                            key={index}
+                            className="flex justify-between items-center group hover:bg-pink-900/30 p-2 rounded transition-colors"
+                          >
+                            <span className="text-sm text-white group-hover:text-pink-300">{index + 1}. {company.company}</span>
+                            <span className="bg-pink-100 text-[#e61c71] px-2 py-1 rounded-full text-xs font-medium group-hover:bg-pink-200 group-hover:text-pink-700">
+                              {company.count}
+                            </span>
+                          </div>
+                        ))
+                      )}
                     </div>
                   </div>
 
@@ -506,32 +841,33 @@ return (
                       <button
                         className="text-[#e61c71] hover:text-pink-700 text-sm font-bold flex items-center transition-colors mr-2"
                         type="button"
+                        onClick={() => router.push('/dashboard/settings#preferences')}
                       >
                         Edit
                       </button>
                     </div>
-                    <div className="space-y-3 pr-2" style={{ maxHeight: '92px', overflowY: 'auto', scrollbarWidth: 'thin', scrollbarColor: '#e61c71 #f3f4f6' }}>
-                      {/* Example preferred roles, replace with dynamic data if available */}
-                      <div className="flex justify-between items-center group hover:bg-pink-900/30 p-2 rounded transition-colors">
-                        <span className="text-sm text-white group-hover:text-pink-300">1. Software Engineer</span>
-                        <span className="bg-pink-100 text-[#e61c71] px-2 py-1 rounded-full text-xs font-medium group-hover:bg-pink-200 group-hover:text-pink-700">8</span>
-                      </div>
-                      <div className="flex justify-between items-center group hover:bg-pink-900/30 p-2 rounded transition-colors">
-                        <span className="text-sm text-white group-hover:text-pink-300">2. Product Manager</span>
-                        <span className="bg-pink-100 text-[#e61c71] px-2 py-1 rounded-full text-xs font-medium group-hover:bg-pink-200 group-hover:text-pink-700">5</span>
-                      </div>
-                      <div className="flex justify-between items-center group hover:bg-pink-900/30 p-2 rounded transition-colors">
-                        <span className="text-sm text-white group-hover:text-pink-300">3. Data Analyst</span>
-                        <span className="bg-pink-100 text-[#e61c71] px-2 py-1 rounded-full text-xs font-medium group-hover:bg-pink-200 group-hover:text-pink-700">6</span>
-                      </div>
-                      <div className="flex justify-between items-center group hover:bg-pink-900/30 p-2 rounded transition-colors">
-                        <span className="text-sm text-white group-hover:text-pink-300">4. AI Engineer</span>
-                        <span className="bg-pink-100 text-[#e61c71] px-2 py-1 rounded-full text-xs font-medium group-hover:bg-pink-200 group-hover:text-pink-700">3</span>
-                      </div>
-                      <div className="flex justify-between items-center group hover:bg-pink-900/30 p-2 rounded transition-colors">
-                        <span className="text-sm text-white group-hover:text-pink-300">5. UX Designer</span>
-                        <span className="bg-pink-100 text-[#e61c71] px-2 py-1 rounded-full text-xs font-medium group-hover:bg-pink-200 group-hover:text-pink-700">2</span>
-                      </div>
+                    <div className="space-y-3 pr-2" style={{ maxHeight: '92px', overflowY: 'auto' }}>
+                      {preferredRoles.length === 0 ? (
+                        <div className="text-center text-gray-300 py-4">
+                          <Briefcase size={24} className="mx-auto mb-1" />
+                          <div className="font-semibold">No preferred roles selected</div>
+                          <div className="text-xs">Add roles to personalize your job search.</div>
+                        </div>
+                      ) : (
+                        preferredRoles.map((role, index) => (
+                          <div
+                            key={index}
+                            className="flex justify-between items-center group hover:bg-pink-900/30 p-2 rounded transition-colors"
+                          >
+                            <span className="text-sm text-white group-hover:text-pink-300">{index + 1}. {role.role}</span>
+                            {role.count !== undefined && (
+                              <span className="bg-pink-100 text-[#e61c71] px-2 py-1 rounded-full text-xs font-medium group-hover:bg-pink-200 group-hover:text-pink-700">
+                                {role.count}
+                              </span>
+                            )}
+                          </div>
+                        ))
+                      )}
                     </div>
                   </div>
 
