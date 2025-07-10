@@ -22,16 +22,15 @@ import {
 import Image from "next/image";
 import { useUser } from '../../context/UserContext';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/utils/supabase/client';
+import { createClient } from '../../../utils/supabase/client';
 
 // Add types for Supabase data
 interface Application {
   id: string;
-  jobTitle: string;
+  role_title: string;
   company: string;
-  dateApplied: string;
+  date_applied: string;
   status: string;
-  actions?: string;
   salary?: string | null;
 }
 interface Company {
@@ -399,6 +398,24 @@ const Dashboard = () => {
     }
   };
 
+  // Add a function to map status values to user-friendly labels
+  function getStatusLabel(status: string): string {
+    switch (status) {
+      case 'submitted':
+        return 'Submitted';
+      case 'in_review':
+        return 'In Review';
+      case 'rejected':
+        return 'Rejected';
+      case 'interview':
+        return 'Interview';
+      case 'offer':
+        return 'Offer';
+      default:
+        return status.charAt(0).toUpperCase() + status.slice(1);
+    }
+  }
+
   const LinkedInIcon = () => (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
       <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" fill="#0A66C2"/>
@@ -436,10 +453,10 @@ const Dashboard = () => {
   const filteredApplications = applications.filter(app => {
     const statusMatch = filterStatus ? app.status.toLowerCase().includes(filterStatus.toLowerCase()) : true;
     const companyMatch = filterCompany ? app.company.toLowerCase().includes(filterCompany.toLowerCase()) : true;
-    const titleMatch = filterTitle ? app.jobTitle.toLowerCase().includes(filterTitle.toLowerCase()) : true;
+    const titleMatch = filterTitle ? app.role_title.toLowerCase().includes(filterTitle.toLowerCase()) : true;
     const salaryMatch = filterSalary ? (app.salary && app.salary.replace(/[^0-9]/g, '').includes(filterSalary.replace(/[^0-9]/g, ''))) : true;
     const dateMatch = filterDate
-      ? (app.dateApplied && app.dateApplied.replace(/\s+/g, '').toLowerCase().includes(filterDate.replace(/\s+/g, '').toLowerCase()))
+      ? (app.date_applied && app.date_applied.replace(/\s+/g, '').toLowerCase().includes(filterDate.replace(/\s+/g, '').toLowerCase()))
       : true;
     return statusMatch && companyMatch && titleMatch && salaryMatch && dateMatch;
   });
@@ -750,14 +767,14 @@ return (
                         recentApplications.map((app, index) => (
                           <div key={app.id} className={`flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors animate-in slide-in-from-left-4 duration-500`} style={{animationDelay: `${index * 100}ms`}}>
                             <div>
-                              <div className="font-medium text-gray-800">{app.jobTitle}</div>
+                              <div className="font-medium text-gray-800">{app.role_title}</div>
                               <div className="text-sm text-gray-600">{app.company}</div>
                             </div>
                             <div className="text-right">
                               <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(app.status)}`}>
-                                {app.status}
+                                {getStatusLabel(app.status)}
                               </span>
-                              <div className="text-xs text-gray-500 mt-1">{app.dateApplied}</div>
+                              <div className="text-xs text-gray-500 mt-1">{app.date_applied}</div>
                             </div>
                           </div>
                         ))
@@ -999,11 +1016,11 @@ return (
                       {filteredApplications.map((app, index) => (
                         <tr key={app.id} className={`hover:bg-gray-50 transition-colors animate-in slide-in-from-left-4 duration-500`} style={{animationDelay: `${index * 100}ms`}}>
                           <td className="px-6 py-4 text-sm text-gray-700">{app.company}</td>
-                          <td className="px-6 py-4 text-sm font-medium text-gray-900">{app.jobTitle}</td>
-                          <td className="px-6 py-4 text-sm text-gray-700">{app.dateApplied}</td>
+                          <td className="px-6 py-4 text-sm font-medium text-gray-900">{app.role_title}</td>
+                          <td className="px-6 py-4 text-sm text-gray-700">{app.date_applied}</td>
                           <td className="px-6 py-4">
                             <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(app.status)}`}>
-                              {app.status}
+                              {getStatusLabel(app.status)}
                             </span>
                           </td>
                           <td className="px-6 py-4 text-sm text-gray-700">{app.salary ? app.salary : '-'}</td>
