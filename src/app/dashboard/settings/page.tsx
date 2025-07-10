@@ -515,28 +515,6 @@ export default function ProfileSettings() {
                 </button>
               </div>
 
-              {/* Notifications */}
-              <div className="flex items-center justify-between py-3">
-                <div>
-                  <h3 className="font-medium text-gray-900">Notification Settings</h3>
-                  <p className="text-sm text-gray-600">Configure email and push notifications</p>
-                </div>
-                <button className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
-                  Configure
-                </button>
-              </div>
-
-              {/* Privacy */}
-              <div className="flex items-center justify-between py-3">
-                <div>
-                  <h3 className="font-medium text-gray-900">Privacy Settings</h3>
-                  <p className="text-sm text-gray-600">Control your data and privacy preferences</p>
-                </div>
-                <button className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
-                  Manage
-                </button>
-              </div>
-
               <hr className="my-6" />
 
               {/* Sign Out */}

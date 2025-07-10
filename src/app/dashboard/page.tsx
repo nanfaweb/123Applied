@@ -583,7 +583,7 @@ return (
                         <div className="text-4xl font-bold text-black mb-1">
                           {userPlan ? (
                             <>
-                              <span className="text-[#d1005f]">{planStats.lettersTotal - planStats.lettersRemaining}</span> of {planStats.lettersTotal} Letters Used
+                              <span className="text-[#d1005f]">{planStats.lettersTotal - planStats.lettersRemaining}</span> of {planStats.lettersTotal} Applications Submitted
                             </>
                           ) : (
                             <span className="text-[#d1005f]">No plan active</span>
@@ -591,7 +591,7 @@ return (
                         </div>
                         {userPlan ? (
                           <>
-                            <div className="text-sm text-black">{planStats.lettersRemaining} Letters Remaining</div>
+                            <div className="text-sm text-black">{planStats.lettersRemaining} Submissions Remaining</div>
                             <div className="text-lg font-semibold text-black mt-1">{planStats.percent}% Completed</div>
                           </>
                         ) : (
