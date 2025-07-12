@@ -5,7 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Inter } from 'next/font/google';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/utils/supabase/client';
+import { supabase } from '../../../utils/supabase/client';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -24,7 +24,6 @@ export default function SignUp() {
   const [loading, setLoading] = useState(false);
   const [googleAttempted, setGoogleAttempted] = useState(false);
   const router = useRouter();
-  const supabase = createClient();
 
   const handleNext = () => {
     setIsTransitioning(true);
@@ -114,14 +113,25 @@ export default function SignUp() {
       return;
     }
     console.log('Manual login successful:', data.user);
-    router.push('/dashboard');
+    
+    // Check if user is admin and redirect accordingly
+    if (data.user?.email === '123applied.info@gmail.com') {
+      router.push('/admin');
+    } else {
+      router.push('/dashboard');
+    }
   };
 
   // Google signup handler
   const handleGoogleSignup = async () => {
     setLoading(true);
     setGoogleAttempted(true);
-    const { error } = await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: `${window.location.origin}/dashboard` } });
+    const { error } = await supabase.auth.signInWithOAuth({ 
+      provider: 'google', 
+      options: { 
+        redirectTo: `${window.location.origin}/signup` // Redirect back to signup page to handle admin check
+      } 
+    });
     setLoading(false);
     if (error) {
       setError(error.message);
@@ -143,8 +153,8 @@ export default function SignUp() {
       let tries = 0;
       // Wait for Supabase user to be available (sometimes takes a moment after OAuth)
       while (isMounted && !user && tries < 10) {
-        // Supabase user fetching logic removed. File retained for reference.
-        user = null; // Placeholder, replace with actual user fetching logic
+        const { data: { user: currentUser } } = await supabase.auth.getUser();
+        user = currentUser;
         if (!user) {
           await new Promise(res => setTimeout(res, 300));
           tries++;
@@ -154,7 +164,13 @@ export default function SignUp() {
         try {
           // Supabase user profile syncing logic removed. File retained for reference.
           console.log('Google sign in successful:', user);
-          router.push('/dashboard');
+          
+          // Check if user is admin and redirect accordingly
+          if (user.email === '123applied.info@gmail.com') {
+            router.push('/admin');
+          } else {
+            router.push('/dashboard');
+          }
         } catch (err) {
           setError((err as Error).message || 'Error syncing Google user.');
         }

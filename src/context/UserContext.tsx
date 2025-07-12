@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { createClient } from '@/utils/supabase/client';
+import { supabase } from '../../utils/supabase/client';
 import type { Session, User } from '@supabase/supabase-js';
 
 interface UserContextType {
@@ -24,7 +24,6 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const supabase = createClient();
     let mounted = true;
 
     // Get initial session

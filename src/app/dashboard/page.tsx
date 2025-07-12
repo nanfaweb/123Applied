@@ -22,7 +22,7 @@ import {
 import Image from "next/image";
 import { useUser } from '../../context/UserContext';
 import { useRouter } from 'next/navigation';
-import { createClient } from '../../../utils/supabase/client';
+import { supabase } from '../../../utils/supabase/client';
 
 // Add types for Supabase data
 interface Application {
@@ -57,7 +57,7 @@ interface UserPlan {
 const Dashboard = () => {
   const { user, loading } = useUser();
   const router = useRouter();
-  const supabase = createClient();
+  // const supabase = createClient(); // This line is removed
 
   // State for user's full name from profiles table
   const [profileName, setProfileName] = useState<string>("");
@@ -76,13 +76,18 @@ const Dashboard = () => {
       }
     };
     if (user) fetchProfileName();
-  }, [user, supabase]);
+  }, [user]);
 
   React.useEffect(() => {
     if (!loading && user) {
       const fullName = user.user_metadata?.full_name || user.user_metadata?.name || 'N/A';
       const email = user.email || 'N/A';
       console.log(`Logged in user: ${fullName} (${email})`);
+      
+      // Check if user is admin and redirect accordingly
+      if (user.email === '123applied.info@gmail.com') {
+        router.replace('/admin');
+      }
     }
     if (!loading && !user) {
       router.replace('/signup');
@@ -130,7 +135,7 @@ const Dashboard = () => {
       if (data && data.external_url) setLinkedInUrl(data.external_url);
     };
     if (user) fetchLinkedIn();
-  }, [user, supabase]);
+  }, [user]);
 
   // Fetch resume file_url for user on mount
   useEffect(() => {
@@ -144,7 +149,7 @@ const Dashboard = () => {
       if (data && data.file_url) setResumeUrl(data.file_url);
     };
     if (user) fetchResume();
-  }, [user, supabase]);
+  }, [user]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -219,7 +224,7 @@ const Dashboard = () => {
       });
     };
     if (user) fetchData();
-  }, [user, supabase]);
+  }, [user]);
 
   const recentApplications = applications.slice(0, 3);
 
@@ -479,8 +484,32 @@ const Dashboard = () => {
 
   // Profile/settings component removed
 
-
-
+  const handleResumeDownload = async () => {
+    if (!resumeUrl) return;
+    // Extract the file path from the public URL
+    try {
+      const urlParts = resumeUrl.split('/');
+      const bucketIndex = urlParts.findIndex(part => part === 'resumes');
+      const filePath = urlParts.slice(bucketIndex + 1).join('/');
+      const { data, error } = await supabase.storage.from('resumes').download(filePath);
+      if (error || !data) {
+        alert('Failed to download resume.');
+        return;
+      }
+      // Create a blob and trigger download
+      const blob = new Blob([data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'Resume.pdf';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch {
+      alert('Failed to download resume.');
+    }
+  };
 
 
 return (
@@ -737,6 +766,53 @@ return (
                           </button>
                         )}
                       </div>
+                    </div>
+                  </div>
+
+                  {/* Documents Section */}
+                  <div className="bg-white rounded-xl shadow-sm p-4 mb-4">
+                    <h3 className="text-base font-semibold text-gray-800 mb-3 flex items-center">
+                      <FileText size={18} className="mr-2 text-[#e61c71]" />
+                      Documents
+                    </h3>
+                    <div className="flex flex-col gap-2">
+                      {/* Resume Display */}
+                      {resumeUrl && (
+                        <div className="flex items-center justify-between bg-gray-50 rounded-lg px-4 py-3 mb-2">
+                          <div className="flex items-center gap-3">
+                            <FileText size={20} className="text-gray-400" />
+                            <div>
+                              <div className="font-medium text-gray-800">Resume.pdf</div>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={handleResumeDownload}
+                            className="inline-flex items-center px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors text-sm font-semibold"
+                          >
+                            Download
+                          </button>
+                        </div>
+                      )}
+                      {/* LinkedIn URL Display */}
+                      {linkedInUrl && (
+                        <div className="flex items-center justify-between bg-gray-50 rounded-lg px-4 py-3">
+                          <div className="flex items-center gap-3">
+                            <LinkedInIcon />
+                            <div>
+                              <div className="font-medium text-gray-800">LinkedIn</div>
+                              <a
+                                href={linkedInUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-600 underline break-all text-xs"
+                              >
+                                {linkedInUrl}
+                              </a>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
 
