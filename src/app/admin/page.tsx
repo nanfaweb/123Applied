@@ -233,9 +233,9 @@ const AdminPortal = () => {
                   <User className="h-5 w-5 text-slate-600" />
                 </button>
                 {profileMenuOpen && (
-                  <div className="absolute right-0 mt-3 w-44 bg-white/95 backdrop-blur-md border border-slate-200 rounded-xl shadow-lg z-50 py-2 animate-fade-in">
+                  <div className="absolute right-0 mt-2 w-40 bg-white border border-slate-200 rounded-xl shadow-lg z-50 py-1 animate-fade-in">
                     <button
-                      className="block w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-pink-100 hover:text-pink-700 rounded-lg transition-colors duration-150"
+                      className="block w-full text-left px-3 py-1.5 text-sm text-slate-700 bg-white hover:bg-pink-100 hover:text-pink-700 rounded-lg transition-colors duration-150"
                       onClick={() => { setProfileMenuOpen(false); /* Add sign out logic here if needed */ }}
                     >
                       Sign Out
@@ -269,7 +269,7 @@ const AdminPortal = () => {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* User Info */}
-              <div className="bg-white rounded-lg shadow p-4 flex items-center gap-4 min-h-0">
+              <div className="bg-white rounded-lg shadow p-4 flex items-center gap-4 min-h-0 transition-transform duration-200 hover:scale-105 hover:shadow-xl hover:cursor-default">
                 {/* Avatar */}
                 <div className="w-14 h-14 rounded-full bg-pink-500 flex items-center justify-center text-white text-2xl font-bold shadow-lg">
                   {selectedUser.name.split(' ').map(n => n[0]).join('')}
@@ -283,7 +283,7 @@ const AdminPortal = () => {
                 </div>
               </div>
               {/* Credits */}
-              <div className="bg-white rounded-lg shadow p-4 min-h-0 flex flex-col justify-center">
+              <div className="bg-white rounded-lg shadow p-4 min-h-0 flex flex-col justify-center transition-transform duration-200 hover:scale-105 hover:shadow-xl hover:cursor-default">
                 <h3 className="text-base font-semibold text-slate-900 mb-4 mt-1">Credits Remaining</h3>
                 <div className="border-b border-slate-200 mb-3"></div>
                 <div className="grid grid-cols-1 gap-3">
@@ -291,24 +291,24 @@ const AdminPortal = () => {
                   <div className="flex items-center justify-between bg-slate-50 rounded-lg px-3 py-2">
                     <span className="text-sm text-slate-600 font-medium">Cover Letters</span>
                     <div className="flex items-center gap-2">
-                      <button onClick={() => handleIncrementLetters(selectedUser.id)} className="px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600 transition-colors duration-150 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-green-300">+</button>
+                      <button onClick={() => handleIncrementLetters(selectedUser.id)} className="px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600 transition-colors duration-150 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-green-300 cursor-pointer">+</button>
                       <span className="font-semibold text-slate-900 text-base">{selectedUser.lettersRemaining} <span className="text-slate-400">/ 10</span></span>
-                      <button onClick={() => handleDecrementLetters(selectedUser.id)} className="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition-colors duration-150 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-red-300">-</button>
+                      <button onClick={() => handleDecrementLetters(selectedUser.id)} className="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition-colors duration-150 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-red-300 cursor-pointer">-</button>
                     </div>
                   </div>
                   {/* Resumes */}
                   <div className="flex items-center justify-between bg-slate-50 rounded-lg px-3 py-2">
                     <span className="text-sm text-slate-600 font-medium">Resumes</span>
                     <div className="flex items-center gap-2">
-                      <button onClick={() => handleIncrementResumes(selectedUser.id)} className="px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600 transition-colors duration-150 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-green-300">+</button>
+                      <button onClick={() => handleIncrementResumes(selectedUser.id)} className="px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600 transition-colors duration-150 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-green-300 cursor-pointer">+</button>
                       <span className="font-semibold text-slate-900 text-base">{selectedUser.resumesRemaining} <span className="text-slate-400">/ 5</span></span>
-                      <button onClick={() => handleDecrementResumes(selectedUser.id)} className="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition-colors duration-150 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-red-300">-</button>
+                      <button onClick={() => handleDecrementResumes(selectedUser.id)} className="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition-colors duration-150 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-red-300 cursor-pointer">-</button>
                     </div>
                   </div>
                 </div>
               </div>
               {/* Documents */}
-              <div className="bg-white rounded-lg shadow p-4 min-h-0 flex flex-col justify-center">
+              <div className="bg-white rounded-lg shadow p-4 min-h-0 flex flex-col justify-center transition-transform duration-200 hover:scale-105 hover:shadow-xl hover:cursor-default">
                 <h3 className="text-base font-semibold text-slate-900 mb-2">Documents</h3>
                 <div className="space-y-2">
                   {selectedUser.documents.map((doc, index) => (
@@ -321,10 +321,10 @@ const AdminPortal = () => {
                         </div>
                       </div>
                       {doc.type === 'resume' && (
-                        <a href={doc.url || ''} download className="px-3 py-1 bg-pink-500 text-white rounded text-xs hover:bg-pink-600 text-center w-20 inline-block">Download</a>
+                        <a href={doc.url || ''} download className="px-3 py-1 bg-pink-500 text-white rounded text-xs hover:bg-pink-600 text-center w-20 inline-block cursor-pointer">Download</a>
                       )}
                       {doc.type === 'linkedin' && doc.url && (
-                        <a href={doc.url} target="_blank" rel="noopener noreferrer" className="px-3 py-1 bg-pink-500 text-white rounded text-xs hover:bg-pink-600 text-center w-20 inline-block">Visit</a>
+                        <a href={doc.url} target="_blank" rel="noopener noreferrer" className="px-3 py-1 bg-pink-500 text-white rounded text-xs hover:bg-pink-600 text-center w-20 inline-block cursor-pointer">Visit</a>
                       )}
                     </div>
                   ))}
@@ -338,7 +338,7 @@ const AdminPortal = () => {
                 <h3 className="text-lg font-semibold text-slate-900">Applications</h3>
                 <button
                   onClick={() => setShowAddApplication(true)}
-                  className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-pink-500 hover:bg-pink-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500"
+                  className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-pink-500 hover:bg-pink-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500 cursor-pointer"
                 >
                   <Plus className="h-4 w-4 mr-1" />
                   Add Application
@@ -382,13 +382,13 @@ const AdminPortal = () => {
                     <div className="flex justify-end w-35.5 space-x-2 ml-auto">
                       <button
                         onClick={handleAddApplication}
-                        className="w-1/2 px-4 py-2 bg-pink-500 text-white rounded-md hover:bg-pink-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500"
+                        className="w-1/2 px-4 py-2 bg-pink-500 text-white rounded-md hover:bg-pink-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500 cursor-pointer"
                       >
                         Add
                       </button>
                       <button
                         onClick={() => setShowAddApplication(false)}
-                        className="w-1/2 px-4 py-2 bg-slate-300 text-slate-700 rounded-md hover:bg-slate-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 flex justify-center items-center"
+                        className="w-1/2 px-4 py-2 bg-slate-300 text-slate-700 rounded-md hover:bg-slate-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 flex justify-center items-center cursor-pointer"
                       >
                         Cancel
                       </button>
@@ -437,7 +437,7 @@ const AdminPortal = () => {
             <div className="space-y-6">
               {/* Stats Cards */}
               <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <div className="bg-white rounded-lg shadow p-6">
+                <div className="bg-white rounded-lg shadow p-6 transition-transform duration-200 hover:scale-105 hover:shadow-xl hover:cursor-pointer">
                   <div className="flex items-center">
                     <div className="p-2 bg-pink-100 rounded-lg">
                       <User className="h-6 w-6 text-pink-600" />
@@ -449,7 +449,7 @@ const AdminPortal = () => {
                   </div>
                 </div>
 
-                <div className="bg-white rounded-lg shadow p-6">
+                <div className="bg-white rounded-lg shadow p-6 transition-transform duration-200 hover:scale-105 hover:shadow-xl hover:cursor-pointer">
                   <div className="flex items-center">
                     <div className="p-2 bg-blue-100 rounded-lg">
                       <FileText className="h-6 w-6 text-blue-600" />
@@ -463,7 +463,7 @@ const AdminPortal = () => {
                   </div>
                 </div>
 
-                <div className="bg-white rounded-lg shadow p-6">
+                <div className="bg-white rounded-lg shadow p-6 transition-transform duration-200 hover:scale-105 hover:shadow-xl hover:cursor-pointer">
                   <div className="flex items-center">
                     <div className="p-2 bg-green-100 rounded-lg">
                       <CreditCard className="h-6 w-6 text-green-600" />
@@ -480,7 +480,7 @@ const AdminPortal = () => {
                   </div>
                 </div>
 
-                <div className="bg-white rounded-lg shadow p-6">
+                <div className="bg-white rounded-lg shadow p-6 transition-transform duration-200 hover:scale-105 hover:shadow-xl hover:cursor-pointer">
                   <div className="flex items-center">
                     <div className="p-2 bg-purple-100 rounded-lg">
                       <Edit3 className="h-6 w-6 text-purple-600" />
@@ -567,7 +567,7 @@ const AdminPortal = () => {
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                             <button
                               onClick={() => setSelectedUser(user)}
-                              className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-white bg-pink-500 hover:bg-pink-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500"
+                              className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-white bg-pink-500 hover:bg-pink-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500 cursor-pointer"
                             >
                               <Eye className="h-4 w-4 mr-1" />
                               View
