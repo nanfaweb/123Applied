@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, User, FileText, Plus, Edit3, Eye, CreditCard } from 'lucide-react';
+import { Search, User, FileText, Plus, Edit3, Eye, CreditCard, Clock, UserCheck, ThumbsUp, XCircle } from 'lucide-react';
+import Image from 'next/image';
 
 // Type definitions
 interface Document {
@@ -212,26 +213,29 @@ const AdminPortal = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-700">
       {/* Top Navbar */}
-      <nav className="bg-white shadow-sm border-b">
+      <nav className="sticky top-0 z-40 bg-gradient-to-r from-[#0a0f1c]/95 to-[#1a2233]/95 backdrop-blur-md shadow-md border-b border-slate-900 rounded-b-xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-slate-900">123Applied</h1>
+            <div className="flex items-center gap-3">
+              <Image src="/mascot.png" alt="Company Logo" width={36} height={36} className="rounded-full shadow" />
+              <h1 className="text-2xl font-extrabold text-slate-100 tracking-tight" style={{ fontFamily: 'Poppins, Montserrat, Arial, sans-serif' }}>
+                Admin Portal
+              </h1>
             </div>
             <div className="flex items-center space-x-4">
               <div className="relative" ref={profileMenuRef}>
                 <button
-                  className="w-8 h-8 bg-slate-300 rounded-full flex items-center justify-center focus:outline-none"
+                  className="w-9 h-9 bg-white border border-slate-300 rounded-full flex items-center justify-center shadow-sm hover:border-pink-400 hover:shadow-lg transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-pink-300"
                   onClick={() => setProfileMenuOpen((open) => !open)}
                   aria-haspopup="true"
                   aria-expanded={profileMenuOpen}
                 >
-                  <User className="h-4 w-4 text-slate-600" />
+                  <User className="h-5 w-5 text-slate-600" />
                 </button>
                 {profileMenuOpen && (
-                  <div className="absolute right-full -mr-2 mt-2 w-40 bg-white border border-slate-200 rounded shadow-lg z-50">
+                  <div className="absolute right-0 mt-3 w-44 bg-white/95 backdrop-blur-md border border-slate-200 rounded-xl shadow-lg z-50 py-2 animate-fade-in">
                     <button
-                      className="block w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-pink-100 hover:text-pink-700"
+                      className="block w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-pink-100 hover:text-pink-700 rounded-lg transition-colors duration-150"
                       onClick={() => { setProfileMenuOpen(false); /* Add sign out logic here if needed */ }}
                     >
                       Sign Out
@@ -265,108 +269,62 @@ const AdminPortal = () => {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* User Info */}
-              <div className="bg-white rounded-lg shadow p-6">
-                <h3 className="text-lg font-semibold text-slate-900 mb-6">User Information</h3>
-                <div className="flex flex-col gap-6">
-                  <div>
-                    <p className="text-sm text-slate-600 mb-1">Full Name</p>
-                    <p className="font-medium text-slate-900">{selectedUser.name}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-slate-600 mb-1">Email</p>
-                    <p className="font-medium text-slate-900">{selectedUser.email}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-slate-600 mb-1">Plan</p>
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getPlanColor(selectedUser.plan)}`}>
-                      {selectedUser.plan}
-                    </span>
-                  </div>
-                  <div>
-                    <p className="text-sm text-slate-600 mb-1">Last Active</p>
-                    <p className="font-medium text-slate-900">{selectedUser.lastActive}</p>
-                  </div>
+              <div className="bg-white rounded-lg shadow p-4 flex items-center gap-4 min-h-0">
+                {/* Avatar */}
+                <div className="w-14 h-14 rounded-full bg-pink-500 flex items-center justify-center text-white text-2xl font-bold shadow-lg">
+                  {selectedUser.name.split(' ').map(n => n[0]).join('')}
+                </div>
+                {/* Info */}
+                <div className="flex flex-col justify-center">
+                  <div className="text-lg font-semibold text-slate-900 mb-1">{selectedUser.name}</div>
+                  <div className="text-sm text-slate-500 mb-2">{selectedUser.email}</div>
+                  <span className={`inline-flex w-fit px-2 py-1 text-xs font-semibold rounded-full ${getPlanColor(selectedUser.plan)} mb-2`}>{selectedUser.plan}</span>
+                  <div className="text-xs text-slate-400">Last Active: <span className="text-slate-600">{selectedUser.lastActive}</span></div>
                 </div>
               </div>
-
               {/* Credits */}
-              <div className="bg-white rounded-lg shadow p-6">
-                <h3 className="text-lg font-semibold text-slate-900 mb-4">Credits Remaining</h3>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-slate-600">Cover Letters</span>
-                    <div className="flex items-center space-x-2">
-                      <button
-                        onClick={() => handleIncrementLetters(selectedUser.id)}
-                        className="px-2 py-1 bg-green-500 text-white rounded text-xs hover:bg-green-600"
-                      >
-                        +
-                      </button>
-                      <span className="font-medium text-slate-900">{selectedUser.lettersRemaining} / 10</span>
-                      <button
-                        onClick={() => handleDecrementLetters(selectedUser.id)}
-                        className="px-2 py-1 bg-red-500 text-white rounded text-xs hover:bg-red-600"
-                      >
-                        -
-                      </button>
+              <div className="bg-white rounded-lg shadow p-4 min-h-0 flex flex-col justify-center">
+                <h3 className="text-base font-semibold text-slate-900 mb-4 mt-1">Credits Remaining</h3>
+                <div className="border-b border-slate-200 mb-3"></div>
+                <div className="grid grid-cols-1 gap-3">
+                  {/* Cover Letters */}
+                  <div className="flex items-center justify-between bg-slate-50 rounded-lg px-3 py-2">
+                    <span className="text-sm text-slate-600 font-medium">Cover Letters</span>
+                    <div className="flex items-center gap-2">
+                      <button onClick={() => handleIncrementLetters(selectedUser.id)} className="px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600 transition-colors duration-150 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-green-300">+</button>
+                      <span className="font-semibold text-slate-900 text-base">{selectedUser.lettersRemaining} <span className="text-slate-400">/ 10</span></span>
+                      <button onClick={() => handleDecrementLetters(selectedUser.id)} className="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition-colors duration-150 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-red-300">-</button>
                     </div>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-slate-600">Resumes</span>
-                    <div className="flex items-center space-x-2">
-                      <button
-                        onClick={() => handleIncrementResumes(selectedUser.id)}
-                        className="px-2 py-1 bg-green-500 text-white rounded text-xs hover:bg-green-600"
-                      >
-                        +
-                      </button>
-                      <span className="font-medium text-slate-900">{selectedUser.resumesRemaining} / 5</span>
-                      <button
-                        onClick={() => handleDecrementResumes(selectedUser.id)}
-                        className="px-2 py-1 bg-red-500 text-white rounded text-xs hover:bg-red-600"
-                      >
-                        -
-                      </button>
+                  {/* Resumes */}
+                  <div className="flex items-center justify-between bg-slate-50 rounded-lg px-3 py-2">
+                    <span className="text-sm text-slate-600 font-medium">Resumes</span>
+                    <div className="flex items-center gap-2">
+                      <button onClick={() => handleIncrementResumes(selectedUser.id)} className="px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600 transition-colors duration-150 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-green-300">+</button>
+                      <span className="font-semibold text-slate-900 text-base">{selectedUser.resumesRemaining} <span className="text-slate-400">/ 5</span></span>
+                      <button onClick={() => handleDecrementResumes(selectedUser.id)} className="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition-colors duration-150 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-red-300">-</button>
                     </div>
                   </div>
                 </div>
               </div>
-
               {/* Documents */}
-              <div className="bg-white rounded-lg shadow p-6">
-                <h3 className="text-lg font-semibold text-slate-900 mb-4">Documents</h3>
-                <div className="space-y-3">
+              <div className="bg-white rounded-lg shadow p-4 min-h-0 flex flex-col justify-center">
+                <h3 className="text-base font-semibold text-slate-900 mb-2">Documents</h3>
+                <div className="space-y-2">
                   {selectedUser.documents.map((doc, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-                      <div className="flex items-center space-x-3">
+                    <div key={index} className="flex items-center justify-between p-2 bg-slate-50 rounded-lg">
+                      <div className="flex items-center space-x-2">
                         <FileText className="h-5 w-5 text-slate-400" />
                         <div>
-                          <p className="text-sm font-medium text-slate-900">
-                            {doc.type === 'resume' ? doc.name : 'LinkedIn Profile'}
-                          </p>
-                          <p className="text-xs text-slate-500">
-                            {doc.type === 'resume' ? doc.uploadDate : doc.addedDate}
-                          </p>
+                          <p className="text-sm font-medium text-slate-900">{doc.type === 'resume' ? doc.name : 'LinkedIn Profile'}</p>
+                          <p className="text-xs text-slate-500">{doc.type === 'resume' ? doc.uploadDate : doc.addedDate}</p>
                         </div>
                       </div>
                       {doc.type === 'resume' && (
-                        <a
-                          href={doc.url || ''}
-                          download
-                          className="px-3 py-1 bg-pink-500 text-white rounded text-xs hover:bg-pink-600 text-center w-24 inline-block"
-                        >
-                          Download
-                        </a>
+                        <a href={doc.url || ''} download className="px-3 py-1 bg-pink-500 text-white rounded text-xs hover:bg-pink-600 text-center w-20 inline-block">Download</a>
                       )}
                       {doc.type === 'linkedin' && doc.url && (
-                        <a
-                          href={doc.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="px-3 py-1 bg-pink-500 text-white rounded text-xs hover:bg-pink-600 text-center w-24 inline-block"
-                        >
-                          Visit
-                        </a>
+                        <a href={doc.url} target="_blank" rel="noopener noreferrer" className="px-3 py-1 bg-pink-500 text-white rounded text-xs hover:bg-pink-600 text-center w-20 inline-block">Visit</a>
                       )}
                     </div>
                   ))}
@@ -457,7 +415,11 @@ const AdminPortal = () => {
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">{app.role}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">{app.salary}</td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(app.status)}`}>
+                          <span className={`inline-flex items-center gap-2 px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(app.status)}`}> 
+                            {app.status === 'Applied' && <Clock className="w-4 h-4 text-yellow-700" />} 
+                            {app.status === 'Interview' && <UserCheck className="w-4 h-4 text-green-700" />} 
+                            {app.status === 'Offer' && <ThumbsUp className="w-4 h-4 text-blue-700" />} 
+                            {app.status === 'Rejected' && <XCircle className="w-4 h-4 text-red-700" />} 
                             {app.status}
                           </span>
                         </td>
@@ -561,7 +523,7 @@ const AdminPortal = () => {
                         <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Resumes</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Applications</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Work Status</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Last Active</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Last Modified</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Actions</th>
                       </tr>
                     </thead>
@@ -597,7 +559,11 @@ const AdminPortal = () => {
                               ))}
                             </select>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{user.lastActive}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
+                            {user.applications && user.applications.length > 0
+                              ? user.applications.reduce((latest, app) => app.date > latest ? app.date : latest, user.applications[0].date)
+                              : 'N/A'}
+                          </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                             <button
                               onClick={() => setSelectedUser(user)}
