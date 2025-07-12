@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, User, FileText, Plus, Edit3, Eye, CreditCard, Minus } from 'lucide-react';
+import { Search, User, FileText, Plus, Edit3, Eye, CreditCard } from 'lucide-react';
 
 // Type definitions
 interface Document {
@@ -229,7 +229,7 @@ const AdminPortal = () => {
                   <User className="h-4 w-4 text-slate-600" />
                 </button>
                 {profileMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-40 bg-white border border-slate-200 rounded shadow-lg z-50">
+                  <div className="absolute right-full -mr-2 mt-2 w-40 bg-white border border-slate-200 rounded shadow-lg z-50">
                     <button
                       className="block w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-pink-100 hover:text-pink-700"
                       onClick={() => { setProfileMenuOpen(false); /* Add sign out logic here if needed */ }}
@@ -249,13 +249,18 @@ const AdminPortal = () => {
         {selectedUser ? (
           <div className="space-y-6">
             <div className="flex items-center justify-between">
-              <button
-                onClick={() => setSelectedUser(null)}
-                className="text-white hover:text-pink-200 text-sm font-medium"
-              >
-                ← Back to Dashboard
-              </button>
-              <h2 className="text-2xl font-bold text-white">{selectedUser.name}</h2>
+              <div className="flex items-center space-x-3">
+                <button
+                  onClick={() => setSelectedUser(null)}
+                  className="focus:outline-none"
+                  aria-label="Back"
+                >
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+                <h2 className="text-2xl font-bold text-white">{selectedUser.name}</h2>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -297,7 +302,7 @@ const AdminPortal = () => {
                       >
                         +
                       </button>
-                      <span className="font-medium text-slate-900">{selectedUser.lettersRemaining}</span>
+                      <span className="font-medium text-slate-900">{selectedUser.lettersRemaining} / 10</span>
                       <button
                         onClick={() => handleDecrementLetters(selectedUser.id)}
                         className="px-2 py-1 bg-red-500 text-white rounded text-xs hover:bg-red-600"
@@ -307,7 +312,7 @@ const AdminPortal = () => {
                     </div>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-slate-600">Resume Reviews</span>
+                    <span className="text-sm text-slate-600">Resumes</span>
                     <div className="flex items-center space-x-2">
                       <button
                         onClick={() => handleIncrementResumes(selectedUser.id)}
@@ -315,7 +320,7 @@ const AdminPortal = () => {
                       >
                         +
                       </button>
-                      <span className="font-medium text-slate-900">{selectedUser.resumesRemaining}</span>
+                      <span className="font-medium text-slate-900">{selectedUser.resumesRemaining} / 5</span>
                       <button
                         onClick={() => handleDecrementResumes(selectedUser.id)}
                         className="px-2 py-1 bg-red-500 text-white rounded text-xs hover:bg-red-600"
@@ -384,7 +389,6 @@ const AdminPortal = () => {
 
               {showAddApplication && (
                 <div className="px-6 py-4 bg-slate-50 border-b border-slate-200">
-                  <h4 className="text-md font-medium text-slate-900 mb-3">Add New Application</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                     <input
                       type="text"
@@ -417,16 +421,16 @@ const AdminPortal = () => {
                       <option value="Offer">Offer</option>
                       <option value="Rejected">Rejected</option>
                     </select>
-                    <div className="flex space-x-2">
+                    <div className="flex justify-end w-35.5 space-x-2 ml-auto">
                       <button
                         onClick={handleAddApplication}
-                        className="px-4 py-2 bg-pink-500 text-white rounded-md hover:bg-pink-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500"
+                        className="w-1/2 px-4 py-2 bg-pink-500 text-white rounded-md hover:bg-pink-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500"
                       >
                         Add
                       </button>
                       <button
                         onClick={() => setShowAddApplication(false)}
-                        className="px-4 py-2 bg-slate-300 text-slate-700 rounded-md hover:bg-slate-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500"
+                        className="w-1/2 px-4 py-2 bg-slate-300 text-slate-700 rounded-md hover:bg-slate-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 flex justify-center items-center"
                       >
                         Cancel
                       </button>
@@ -556,7 +560,7 @@ const AdminPortal = () => {
                         <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Letters</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Resumes</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Applications</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Work Status</th> {/* Added */}
+                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Work Status</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Last Active</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Actions</th>
                       </tr>
@@ -576,38 +580,10 @@ const AdminPortal = () => {
                             </span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">
-                            <div className="flex items-center space-x-2">
-                              <button
-                                onClick={() => handleIncrementLetters(user.id)}
-                                className="p-1 text-green-500 hover:text-green-700"
-                              >
-                                <Plus className="h-3 w-3" />
-                              </button>
-                              <span>{user.lettersRemaining}</span>
-                              <button
-                                onClick={() => handleDecrementLetters(user.id)}
-                                className="p-1 text-red-500 hover:text-red-700"
-                              >
-                                <Minus className="h-3 w-3" />
-                              </button>
-                            </div>
+                            <span>{user.lettersRemaining}</span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">
-                            <div className="flex items-center space-x-2">
-                              <button
-                                onClick={() => handleIncrementResumes(user.id)}
-                                className="p-1 text-green-500 hover:text-green-700"
-                              >
-                                <Plus className="h-3 w-3" />
-                              </button>
-                              <span>{user.resumesRemaining}</span>
-                              <button
-                                onClick={() => handleDecrementResumes(user.id)}
-                                className="p-1 text-red-500 hover:text-red-700"
-                              >
-                                <Minus className="h-3 w-3" />
-                              </button>
-                            </div>
+                            <span>{user.resumesRemaining}</span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">{user.totalApplications}</td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">
