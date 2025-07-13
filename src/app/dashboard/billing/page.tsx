@@ -117,6 +117,7 @@ export default function BillingPage() {
   };
 
   // --- Three-state billing logic ---
+  // Check if user has any billing history (from billing_history table)
   if (history.length === 0) {
     // State 1: User never bought a plan
     return (

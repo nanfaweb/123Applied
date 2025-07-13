@@ -1,5 +1,5 @@
 "use client";
-import { signInWithGoogle, signOut } from "../../lib/auth-actions";
+import { signInWithGoogle, signout } from "../../lib/auth-actions";
 import { useState } from "react";
 
 export default function AuthButtons() {
@@ -19,7 +19,7 @@ export default function AuthButtons() {
   const handleSignOut = async () => {
     setLoading(true);
     try {
-      await signOut();
+      await signout();
     } catch {
       alert("Sign out failed");
     } finally {

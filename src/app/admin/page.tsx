@@ -3,6 +3,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Search, User, FileText, Plus, Edit3, Eye, CreditCard, Clock, UserCheck, ThumbsUp, XCircle } from 'lucide-react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+import { supabase } from '../../../utils/supabase/client';
+import { useUser } from '../../context/UserContext';
 
 // Type definitions
 interface Document {
@@ -72,6 +75,9 @@ const placeholderUsers: User[] = [
 ];
 
 const AdminPortal = () => {
+  const { user, loading } = useUser();
+  const router = useRouter();
+  
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [showAddApplication, setShowAddApplication] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -79,6 +85,19 @@ const AdminPortal = () => {
 
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement>(null);
+
+  // Authentication check
+  useEffect(() => {
+    if (!loading && !user) {
+      router.replace('/signup');
+      return;
+    }
+    
+    if (!loading && user && user.email !== '123applied.info@gmail.com') {
+      router.replace('/dashboard');
+      return;
+    }
+  }, [user, loading, router]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -210,6 +229,34 @@ const AdminPortal = () => {
     }
   };
 
+  const handleSignOut = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      console.error('Sign out error:', error.message);
+    } else {
+      console.log('Admin signed out successfully');
+      router.replace('/signup');
+    }
+  };
+
+  // Show loading state while checking authentication
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-700 flex items-center justify-center">
+        <div className="text-white text-xl">Loading...</div>
+      </div>
+    );
+  }
+
+  // Show unauthorized message if not admin
+  if (!user || user.email !== '123applied.info@gmail.com') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-700 flex items-center justify-center">
+        <div className="text-white text-xl">Unauthorized Access</div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-700">
       {/* Top Navbar */}
@@ -236,7 +283,10 @@ const AdminPortal = () => {
                   <div className="absolute right-0 mt-2 w-40 bg-white border border-slate-200 rounded-xl shadow-lg z-50 py-1 animate-fade-in">
                     <button
                       className="block w-full text-left px-3 py-1.5 text-sm text-slate-700 bg-white hover:bg-pink-100 hover:text-pink-700 rounded-lg transition-colors duration-150"
-                      onClick={() => { setProfileMenuOpen(false); /* Add sign out logic here if needed */ }}
+                      onClick={() => { 
+                        setProfileMenuOpen(false); 
+                        handleSignOut(); 
+                      }}
                     >
                       Sign Out
                     </button>

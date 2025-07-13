@@ -61,6 +61,7 @@ const Dashboard = () => {
 
   // State for user's full name from profiles table
   const [profileName, setProfileName] = useState<string>("");
+  const [isNewUser, setIsNewUser] = useState(false);
 
   // Fetch user's name from profiles table
   useEffect(() => {
@@ -224,6 +225,24 @@ const Dashboard = () => {
       });
     };
     if (user) fetchData();
+  }, [user]);
+
+  useEffect(() => {
+    const checkNewUser = async () => {
+      if (!user) return;
+      // Check user_plans
+      const { data: plans } = await supabase
+        .from('user_plans')
+        .select('id')
+        .eq('user_id', user.id);
+      // Check billing_history
+      const { data: history } = await supabase
+        .from('billing_history')
+        .select('id')
+        .eq('user_id', user.id);
+      setIsNewUser((!plans || plans.length === 0) && (!history || history.length === 0));
+    };
+    if (user) checkNewUser();
   }, [user]);
 
   const recentApplications = applications.slice(0, 3);
@@ -484,33 +503,6 @@ const Dashboard = () => {
 
   // Profile/settings component removed
 
-  const handleResumeDownload = async () => {
-    if (!resumeUrl) return;
-    // Extract the file path from the public URL
-    try {
-      const urlParts = resumeUrl.split('/');
-      const bucketIndex = urlParts.findIndex(part => part === 'resumes');
-      const filePath = urlParts.slice(bucketIndex + 1).join('/');
-      const { data, error } = await supabase.storage.from('resumes').download(filePath);
-      if (error || !data) {
-        alert('Failed to download resume.');
-        return;
-      }
-      // Create a blob and trigger download
-      const blob = new Blob([data], { type: 'application/pdf' });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'Resume.pdf';
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
-    } catch {
-      alert('Failed to download resume.');
-    }
-  };
-
 
 return (
     <div className="flex h-screen bg-gray-50" style={{ WebkitOverflowScrolling: 'touch', overscrollBehavior: 'auto' }}>
@@ -550,16 +542,15 @@ return (
               <span>Application Tracker</span>
             </button>
             
+            <a href="/dashboard/billing" className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left text-gray-600 hover:bg-slate-100 transition-all duration-200 transform hover:scale-105">
+              <CreditCard size={20} />
+              <span>Billing</span>
+            </a>
             
             <button type="button" className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left text-gray-600 hover:bg-slate-100 transition-all duration-200 transform hover:scale-105">
               <MessageCircle size={20} />
               <span>Chat Support</span>
             </button>
-            
-            <a href="/dashboard/billing" className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left text-gray-600 hover:bg-slate-100 transition-all duration-200 transform hover:scale-105">
-              <CreditCard size={20} />
-              <span>Billing</span>
-            </a>
           </div>
         </nav>
         
@@ -614,7 +605,7 @@ return (
                   <div className="bg-white rounded-xl shadow-sm p-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
                       <div>
-                        <h2 className="font-playfair text-[2.4rem] font-bold text-black mb-2 flex items-center gap-2 max-md:text-[1.6rem] max-sm:text-[1.2rem] whitespace-nowrap italic bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
+                        <h2 className="font-playfair text-[2.1rem] font-bold text-black mb-2 flex items-center gap-2 max-md:text-[1.3rem] max-sm:text-[1.0rem] whitespace-nowrap italic bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
                           {profileName
                             ? `Welcome back, ${profileName.split(/\s+/).slice(0, 2).join(' ')}.`
                             : `Welcome back, ${user?.email || 'User'}.`}
@@ -632,12 +623,11 @@ return (
                               <span className="text-[#d1005f]">{planStats.lettersTotal - planStats.lettersRemaining}</span> of {planStats.lettersTotal} Applications Submitted
                             </>
                           ) : (
-                            <span className="text-[#d1005f]">No plan active</span>
+                            <span className="text-[#d1005f] text-[1.625rem]">No plan active</span>
                           )}
                         </div>
                         {userPlan ? (
                           <>
-                            <div className="text-sm text-black">{planStats.lettersRemaining} Submissions Remaining</div>
                             <div className="text-lg font-semibold text-black mt-1">{planStats.percent}% Completed</div>
                           </>
                         ) : (
@@ -667,52 +657,61 @@ return (
                         Upload Resume
                       </h3>
                       <div className="border-2 border-dashed border-[#e61c71] rounded-lg p-4 text-center hover:border-pink-400 transition-colors" style={{ maxHeight: '200px' }}>
-                        <Upload size={32} className="mx-auto text-gray-400 mb-2" />
-                        <div className="mb-3">
-                          <p className="text-sm text-gray-600 mb-1">PDF format</p>
-                          {selectedFile && (
-                            <p className="text-xs text-green-600">✓ {selectedFile.name}</p>
-                          )}
-                          {resumeUrl && !selectedFile && (
-                            <p className="text-xs text-blue-600">
-                              Current: {(() => {
-                                try {
-                                  const urlParts = resumeUrl.split('/');
-                                  const rawName = urlParts[urlParts.length - 1].split('_').slice(1).join('_');
-                                  return decodeURIComponent(rawName);
-                                } catch {
-                                  return 'Resume.pdf';
-                                }
-                              })()}
-                              <button
-                                type="button"
-                                className="ml-2 text-red-500 underline hover:text-red-700 disabled:opacity-50"
-                                onClick={handleRemoveResume}
-                                disabled={resumeLoading || resumeRemoving}
-                              >
-                                {resumeRemoving ? 'Removing...' : 'Remove'}
-                              </button>
-                            </p>
-                          )}
-                          {resumeLoading && <p className="text-xs text-gray-500">Uploading...</p>}
-                          {resumeError && <p className="text-xs text-red-500">{resumeError}</p>}
-                          {resumeSuccess && <p className="text-xs text-green-600">Resume uploaded!</p>}
-                        </div>
-                        <input
-                          type="file"
-                          accept=".pdf"
-                          onChange={handleFileUpload}
-                          className="hidden"
-                          id="resume-upload"
-                          disabled={resumeLoading || resumeRemoving}
-                        />
-                        <label
-                          htmlFor="resume-upload"
-                          className="inline-flex items-center px-3 py-2 bg-gradient-to-r from-slate-900 to-slate-700 text-white text-sm rounded-lg hover:from-slate-800 hover:to-slate-600 cursor-pointer transition-all duration-200 transform hover:scale-105"
-                        >
-                          <Upload size={14} className="mr-1" />
-                          Choose File
-                        </label>
+                        {isNewUser ? (
+                          <div className="flex flex-col items-center justify-center animate-pulse min-h-[100px]">
+                            <Upload size={32} className="mx-auto text-gray-300 mb-2 animate-bounce" />
+                            <p className="text-sm text-gray-400">Purchase a plan to enable resume uploads</p>
+                          </div>
+                        ) : (
+                          <>
+                            <Upload size={32} className="mx-auto text-gray-400 mb-2" />
+                            <div className="mb-3">
+                              <p className="text-sm text-gray-600 mb-1">PDF format</p>
+                              {selectedFile && (
+                                <p className="text-xs text-green-600">✓ {selectedFile.name}</p>
+                              )}
+                              {resumeUrl && !selectedFile && (
+                                <p className="text-xs text-blue-600">
+                                  Current: {(() => {
+                                    try {
+                                      const urlParts = resumeUrl.split('/');
+                                      const rawName = urlParts[urlParts.length - 1].split('_').slice(1).join('_');
+                                      return decodeURIComponent(rawName);
+                                    } catch {
+                                      return 'Resume.pdf';
+                                    }
+                                  })()}
+                                  <button
+                                    type="button"
+                                    className="ml-2 text-red-500 underline hover:text-red-700 disabled:opacity-50"
+                                    onClick={handleRemoveResume}
+                                    disabled={resumeLoading || resumeRemoving}
+                                  >
+                                    {resumeRemoving ? 'Removing...' : 'Remove'}
+                                  </button>
+                                </p>
+                              )}
+                              {resumeLoading && <p className="text-xs text-gray-500">Uploading...</p>}
+                              {resumeError && <p className="text-xs text-red-500">{resumeError}</p>}
+                              {resumeSuccess && <p className="text-xs text-green-600">Resume uploaded!</p>}
+                            </div>
+                            <input
+                              type="file"
+                              accept=".pdf"
+                              onChange={handleFileUpload}
+                              className="hidden"
+                              id="resume-upload"
+                              disabled={resumeLoading || resumeRemoving}
+                            />
+                            <label
+                              htmlFor="resume-upload"
+                              className="inline-flex items-center px-3 py-2 bg-gradient-to-r from-slate-900 to-slate-700 text-white text-sm rounded-lg hover:from-slate-800 hover:to-slate-600 cursor-pointer transition-all duration-200 transform hover:scale-105"
+                            >
+                              <Upload size={14} className="mr-1" />
+                              Choose File
+                            </label>
+                          </>
+                        )}
                       </div>
                     </div>
 
@@ -723,96 +722,60 @@ return (
                         <span className="ml-2">Connect LinkedIn</span>
                       </h3>
                       <div className="text-center min-h-[100px]">
-                        <p className="text-sm text-gray-600 mb-3 mt-16">Import professional info</p>
-                        {linkedInUrl && !showLinkedInInput && (
-                          <div className="mt-2 text-xs text-gray-600 break-all mb-2">Current: <a href={linkedInUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">{linkedInUrl}</a></div>
-                        )}
-                        {showLinkedInInput ? (
-                          <div className="flex flex-col items-center gap-2">
-                            <input
-                              type="url"
-                              placeholder="Enter LinkedIn profile URL"
-                              value={linkedInUrl}
-                              onChange={e => setLinkedInUrl(e.target.value)}
-                              className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-200 text-gray-800 placeholder-gray-400 w-full max-w-xs"
-                              disabled={linkedInLoading}
-                            />
-                            <div className="flex gap-2 mt-2">
-                              <button
-                                onClick={handleLinkedInSave}
-                                className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-slate-900 to-slate-700 text-white text-sm rounded-lg hover:from-slate-800 hover:to-slate-600 transition-all duration-200 transform hover:scale-105"
-                                disabled={linkedInLoading || !linkedInUrl}
-                              >
-                                {linkedInLoading ? 'Saving...' : 'Save'}
-                              </button>
-                              <button
-                                onClick={() => setShowLinkedInInput(false)}
-                                className="inline-flex items-center px-4 py-2 bg-gray-200 text-gray-700 text-sm rounded-lg hover:bg-gray-300 transition-all duration-200"
-                                disabled={linkedInLoading}
-                              >
-                                Cancel
-                              </button>
+                        {isNewUser ? (
+                          <div className="flex flex-col items-center justify-center h-full min-h-[150px] animate-pulse">
+                            <div className="flex flex-col items-center">
+                              <LinkedInIcon />
+                              <p className="text-sm text-gray-400 mt-2 text-center">Purchase a plan to enable LinkedIn connection</p>
                             </div>
-                            {linkedInError && <div className="text-red-500 text-xs mt-1">{linkedInError}</div>}
-                            {linkedInSuccess && <div className="text-green-600 text-xs mt-1">LinkedIn URL saved!</div>}
                           </div>
                         ) : (
-                          <button
-                            onClick={handleLinkedInConnect}
-                            className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-slate-900 to-slate-700 text-white text-sm rounded-lg hover:from-slate-800 hover:to-slate-600 transition-all duration-200 transform hover:scale-105"
-                          >
-                            <LinkedInWhiteIcon />
-                            <span className="ml-2">{linkedInUrl ? 'Edit LinkedIn URL' : 'Connect'}</span>
-                          </button>
+                          <>
+                            <p className="text-sm text-gray-600 mb-3 mt-16">Import professional info</p>
+                            {linkedInUrl && !showLinkedInInput && (
+                              <div className="mt-2 text-xs text-gray-600 break-all mb-2">Current: <a href={linkedInUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">{linkedInUrl}</a></div>
+                            )}
+                            {showLinkedInInput ? (
+                              <div className="flex flex-col items-center gap-2">
+                                <input
+                                  type="url"
+                                  placeholder="Enter LinkedIn profile URL"
+                                  value={linkedInUrl}
+                                  onChange={e => setLinkedInUrl(e.target.value)}
+                                  className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-200 text-gray-800 placeholder-gray-400 w-full max-w-xs"
+                                  disabled={linkedInLoading}
+                                />
+                                <div className="flex gap-2 mt-2">
+                                  <button
+                                    onClick={handleLinkedInSave}
+                                    className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-slate-900 to-slate-700 text-white text-sm rounded-lg hover:from-slate-800 hover:to-slate-600 transition-all duration-200 transform hover:scale-105"
+                                    disabled={linkedInLoading || !linkedInUrl}
+                                  >
+                                    {linkedInLoading ? 'Saving...' : 'Save'}
+                                  </button>
+                                  <button
+                                    onClick={() => setShowLinkedInInput(false)}
+                                    className="inline-flex items-center px-4 py-2 bg-gray-200 text-gray-700 text-sm rounded-lg hover:bg-gray-300 transition-all duration-200"
+                                    disabled={linkedInLoading}
+                                  >
+                                    Cancel
+                                  </button>
+                                </div>
+                                {linkedInError && <div className="text-red-500 text-xs mt-1">{linkedInError}</div>}
+                                {linkedInSuccess && <div className="text-green-600 text-xs mt-1">LinkedIn URL saved!</div>}
+                              </div>
+                            ) : (
+                              <button
+                                onClick={handleLinkedInConnect}
+                                className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-slate-900 to-slate-700 text-white text-sm rounded-lg hover:from-slate-800 hover:to-slate-600 transition-all duration-200 transform hover:scale-105"
+                              >
+                                <LinkedInWhiteIcon />
+                                <span className="ml-2">{linkedInUrl ? 'Edit LinkedIn URL' : 'Connect'}</span>
+                              </button>
+                            )}
+                          </>
                         )}
                       </div>
-                    </div>
-                  </div>
-
-                  {/* Documents Section */}
-                  <div className="bg-white rounded-xl shadow-sm p-4 mb-4">
-                    <h3 className="text-base font-semibold text-gray-800 mb-3 flex items-center">
-                      <FileText size={18} className="mr-2 text-[#e61c71]" />
-                      Documents
-                    </h3>
-                    <div className="flex flex-col gap-2">
-                      {/* Resume Display */}
-                      {resumeUrl && (
-                        <div className="flex items-center justify-between bg-gray-50 rounded-lg px-4 py-3 mb-2">
-                          <div className="flex items-center gap-3">
-                            <FileText size={20} className="text-gray-400" />
-                            <div>
-                              <div className="font-medium text-gray-800">Resume.pdf</div>
-                            </div>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={handleResumeDownload}
-                            className="inline-flex items-center px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors text-sm font-semibold"
-                          >
-                            Download
-                          </button>
-                        </div>
-                      )}
-                      {/* LinkedIn URL Display */}
-                      {linkedInUrl && (
-                        <div className="flex items-center justify-between bg-gray-50 rounded-lg px-4 py-3">
-                          <div className="flex items-center gap-3">
-                            <LinkedInIcon />
-                            <div>
-                              <div className="font-medium text-gray-800">LinkedIn</div>
-                              <a
-                                href={linkedInUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-blue-600 underline break-all text-xs"
-                              >
-                                {linkedInUrl}
-                              </a>
-                            </div>
-                          </div>
-                        </div>
-                      )}
                     </div>
                   </div>
 
@@ -837,7 +800,7 @@ return (
                         <div className="text-center text-gray-400 py-8">
                           <Briefcase size={32} className="mx-auto mb-2 text-gray-300" />
                           <div className="font-semibold">No recent applications yet</div>
-                          <div className="text-sm">Start applying to jobs and your recent applications will show up here.</div>
+                          <div className="text-sm">Your applications will show up here as we apply to jobs.</div>
                         </div>
                       ) : (
                         recentApplications.map((app, index) => (
@@ -868,21 +831,31 @@ return (
                         <MapPin size={18} className="text-[#e61c71] mr-2" />
                         <h3 className="text-[1.25rem] font-bold text-white">Preferred Locations</h3>
                       </div>
-                      <button
-                        className="text-[#e61c71] hover:text-pink-700 text-sm font-bold flex items-center transition-colors mr-2"
-                        type="button"
-                        onClick={() => router.push('/dashboard/settings#preferences')}
-                      >
-                        Edit
-                      </button>
+                      {!isNewUser && (
+                        <button
+                          className="text-[#e61c71] hover:text-pink-700 text-sm font-bold flex items-center transition-colors mr-2"
+                          type="button"
+                          onClick={() => router.push('/dashboard/settings#preferences')}
+                        >
+                          Edit
+                        </button>
+                      )}
                     </div>
                     <div className="space-y-3">
                       {preferredLocations.length === 0 ? (
-                        <div className="text-center text-gray-300 py-4">
-                          <MapPin size={24} className="mx-auto mb-1" />
-                          <div className="font-semibold">No preferred locations selected</div>
-                          <div className="text-xs">Add locations to personalize your job search.</div>
-                        </div>
+                        isNewUser ? (
+                          <div className="text-center text-pink-200 py-4 animate-pulse">
+                            <MapPin size={24} className="mx-auto mb-1 animate-bounce" />
+                            <div className="font-semibold">Purchase a plan to add locations</div>
+                            <div className="text-xs">Unlock personalized job search by adding locations.</div>
+                          </div>
+                        ) : (
+                          <div className="text-center text-gray-300 py-4">
+                            <MapPin size={24} className="mx-auto mb-1" />
+                            <div className="font-semibold">No preferred locations selected</div>
+                            <div className="text-xs">Add locations to personalize your job search.</div>
+                          </div>
+                        )
                       ) : (
                         <div className="space-y-3 pr-2" style={{ maxHeight: '92px', overflowY: 'auto' }}>
                           {preferredLocations.map((location, index) => (
@@ -905,21 +878,32 @@ return (
                         <Building2 size={18} className="text-[#e61c71] mr-2" />
                         <h3 className="text-[1.25rem] font-bold text-white">Preferred Companies</h3>
                       </div>
-                      <button
-                        className="text-[#e61c71] hover:text-pink-700 text-sm font-bold flex items-center transition-colors mr-2"
-                        type="button"
-                        onClick={() => router.push('/dashboard/settings#preferences')}
-                      >
-                        Edit
-                      </button>
+                      {/* No text or placeholder here for new users */}
+                      {!isNewUser && (
+                        <button
+                          className="text-[#e61c71] hover:text-pink-700 text-sm font-bold flex items-center transition-colors mr-2"
+                          type="button"
+                          onClick={() => router.push('/dashboard/settings#preferences')}
+                        >
+                          Edit
+                        </button>
+                      )}
                     </div>
                     <div className="space-y-3">
                       {preferredCompanies.length === 0 ? (
-                        <div className="text-center text-gray-300 py-4">
-                          <Building2 size={24} className="mx-auto mb-1" />
-                          <div className="font-semibold">No preferred companies selected</div>
-                          <div className="text-xs">Add companies to personalize your job search.</div>
-                        </div>
+                        isNewUser ? (
+                          <div className="text-center text-pink-200 py-4 animate-pulse">
+                            <Building2 size={24} className="mx-auto mb-1 animate-bounce" />
+                            <div className="font-semibold">Purchase a plan to add companies</div>
+                            <div className="text-xs">Unlock personalized job search by adding companies.</div>
+                          </div>
+                        ) : (
+                          <div className="text-center text-gray-300 py-4">
+                            <Building2 size={24} className="mx-auto mb-1" />
+                            <div className="font-semibold">No preferred companies selected</div>
+                            <div className="text-xs">Add companies to personalize your job search.</div>
+                          </div>
+                        )
                       ) : (
                         <div className="space-y-3 pr-2" style={{ maxHeight: '92px', overflowY: 'auto' }}>
                           {preferredCompanies.map((company, index) => (
@@ -942,21 +926,32 @@ return (
                         <Briefcase size={18} className="text-[#e61c71] mr-2" />
                         <h3 className="text-[1.25rem] font-bold text-white">Preferred Roles</h3>
                       </div>
-                      <button
-                        className="text-[#e61c71] hover:text-pink-700 text-sm font-bold flex items-center transition-colors mr-2"
-                        type="button"
-                        onClick={() => router.push('/dashboard/settings#preferences')}
-                      >
-                        Edit
-                      </button>
+                      {/* No text or placeholder here for new users */}
+                      {!isNewUser && (
+                        <button
+                          className="text-[#e61c71] hover:text-pink-700 text-sm font-bold flex items-center transition-colors mr-2"
+                          type="button"
+                          onClick={() => router.push('/dashboard/settings#preferences')}
+                        >
+                          Edit
+                        </button>
+                      )}
                     </div>
                     <div className="space-y-3">
                       {preferredRoles.length === 0 ? (
-                        <div className="text-center text-gray-300 py-4">
-                          <Briefcase size={24} className="mx-auto mb-1" />
-                          <div className="font-semibold">No preferred roles selected</div>
-                          <div className="text-xs">Add roles to personalize your job search.</div>
-                        </div>
+                        isNewUser ? (
+                          <div className="text-center text-pink-200 py-4 animate-pulse">
+                            <Briefcase size={24} className="mx-auto mb-1 animate-bounce" />
+                            <div className="font-semibold">Purchase a plan to add roles</div>
+                            <div className="text-xs">Unlock personalized job search by adding roles.</div>
+                          </div>
+                        ) : (
+                          <div className="text-center text-gray-300 py-4">
+                            <Briefcase size={24} className="mx-auto mb-1" />
+                            <div className="font-semibold">No preferred roles selected</div>
+                            <div className="text-xs">Add roles to personalize your job search.</div>
+                          </div>
+                        )
                       ) : (
                         <div className="space-y-3 pr-2" style={{ maxHeight: '92px', overflowY: 'auto' }}>
                           {preferredRoles.map((role, index) => (
@@ -973,7 +968,7 @@ return (
                   </div>
 
                   {/* Support Section - Button Bottom Left, Centered Text (Chat) */}
-                  <div className="bg-gradient-to-br from-pink-500 via-[#e61c71] to-pink-400 rounded-2xl p-4 min-h-[240px] text-white shadow-lg animate-in fade-in slide-in-from-bottom-4 duration-700 delay-400 flex flex-col justify-between relative overflow-hidden" style={{ maxHeight: '240px' }}>
+                  <div className="bg-gradient-to-br from-pink-500 via-[#e61c71] to-pink-400 rounded-2xl p-4 min-h-[205px] text-white shadow-lg animate-in fade-in slide-in-from-bottom-4 duration-700 delay-400 flex flex-col justify-between relative overflow-hidden" style={{ maxHeight: '205px' }}>
                     {/* Decorative chat icon */}
                     <div className="absolute right-6 bottom-6 opacity-20 text-white pointer-events-none select-none">
                       <MessageCircle size={80} />
