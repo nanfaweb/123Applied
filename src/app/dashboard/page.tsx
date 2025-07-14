@@ -23,6 +23,7 @@ import Image from "next/image";
 import { useUser } from '../../context/UserContext';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../../../utils/supabase/client';
+import ScrollManager from '../../components/ScrollManager';
 
 // Add types for Supabase data
 interface Application {
@@ -504,6 +505,8 @@ const Dashboard = () => {
 
 
 return (
+  <>
+    <ScrollManager scrollContainerSelector=".flex-1.overflow-y-auto" />
     <div className="flex h-screen bg-gray-50" style={{ WebkitOverflowScrolling: 'touch', overscrollBehavior: 'auto' }}>
       {/* Sidebar */}
       <div className="w-64 bg-white shadow-lg">
@@ -967,7 +970,7 @@ return (
                   </div>
 
                   {/* Support Section - Button Bottom Left, Centered Text (Chat) */}
-                  <div className="bg-gradient-to-br from-pink-500 via-[#e61c71] to-pink-400 rounded-2xl p-4 min-h-[205px] text-white shadow-lg animate-in fade-in slide-in-from-bottom-4 duration-700 delay-400 flex flex-col justify-between relative overflow-hidden" style={{ maxHeight: '205px' }}>
+                  <div className="bg-gradient-to-br from-pink-500 via-[#e61c71] to-pink-400 rounded-2xl p-4 min-h-[215px] text-white shadow-lg animate-in fade-in slide-in-from-bottom-4 duration-700 delay-400 flex flex-col justify-between relative overflow-hidden" style={{ maxHeight: '215px' }}>
                     {/* Decorative chat icon */}
                     <div className="absolute right-6 bottom-6 opacity-20 text-white pointer-events-none select-none">
                       <MessageCircle size={80} />
@@ -1107,7 +1110,8 @@ return (
         </div>
       </div>
     </div>
-  );
+  </>
+);
 };
 
 export default Dashboard;
