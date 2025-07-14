@@ -110,7 +110,6 @@ const Dashboard = () => {
   const [preferredLocations, setPreferredLocations] = useState<Location[]>([]);
   const [preferredCompanies, setPreferredCompanies] = useState<Company[]>([]);
   const [preferredRoles, setPreferredRoles] = useState<Role[]>([]);
-  const [stats, setStats] = useState({ totalApplications: 0, submitted: 0, progress: 0 });
   const [userPlan, setUserPlan] = useState<UserPlan | null>(null);
   const [planStats, setPlanStats] = useState<{ lettersTotal: number; lettersRemaining: number; resumesTotal: number; resumesRemaining: number; percent: number }>({ lettersTotal: 0, lettersRemaining: 0, resumesTotal: 0, resumesRemaining: 0, percent: 0 });
   const [showLinkedInInput, setShowLinkedInInput] = useState(false);
@@ -203,12 +202,17 @@ const Dashboard = () => {
         const activePlan = (plans as UserPlan[] | null)?.find((p) => (p.letters_remaining > 0 || p.resumes_remaining > 0)) || (plans as UserPlan[] | null)?.[0] || null;
         setUserPlan(activePlan);
         if (activePlan) {
-          const lettersTotal = activePlan.letters_remaining + (activePlan.letters_used || 0);
-          const resumesTotal = activePlan.resumes_remaining + (activePlan.resumes_used || 0);
-          const percent = lettersTotal > 0 ? Math.round(((lettersTotal - activePlan.letters_remaining) / lettersTotal) * 100) : 0;
+          // Fetch the plan's total resumes from the plans table
+          const { data: planData } = await supabase
+            .from('plans')
+            .select('resume_limit')
+            .eq('id', activePlan.plan_id)
+            .single();
+          const resumesTotal = planData?.resume_limit || 0;
+          const percent = resumesTotal > 0 ? Math.round(((apps?.length || 0) / resumesTotal) * 100) : 0;
           setPlanStats({
-            lettersTotal,
-            lettersRemaining: activePlan.letters_remaining,
+            lettersTotal: 0, // Not used for applications submitted
+            lettersRemaining: 0, // Not used for applications submitted
             resumesTotal,
             resumesRemaining: activePlan.resumes_remaining,
             percent
@@ -218,11 +222,6 @@ const Dashboard = () => {
         }
       }
       // Stats
-      setStats({
-        totalApplications: apps?.length || 0,
-        submitted: (apps?.filter((a: Application) => a.status === 'Submitted').length) || 0,
-        progress: 0 // You can add more logic here
-      });
     };
     if (user) fetchData();
   }, [user]);
@@ -617,10 +616,10 @@ return (
                         </div>
                       </div>
                       <div className="text-right mt-4 md:mt-0">
-                        <div className="text-4xl font-bold text-black mb-1">
+                        <div className="text-2xl font-bold text-black mb-1">
                           {userPlan ? (
                             <>
-                              <span className="text-[#d1005f]">{planStats.lettersTotal - planStats.lettersRemaining}</span> of {planStats.lettersTotal} Applications Submitted
+                              <span className="text-[#d1005f]">{applications.length}</span> of {planStats.resumesTotal} Applications Submitted
                             </>
                           ) : (
                             <span className="text-[#d1005f] text-[1.625rem]">No plan active</span>
@@ -643,7 +642,7 @@ return (
                     <div className="w-full bg-pink-100 rounded-full h-3 mb-4">
                       <div
                         className="bg-gradient-to-r from-pink-500 to-[#e61c71] h-3 rounded-full transition-all duration-1000 ease-out"
-                        style={{ width: `${userPlan && planStats.lettersTotal > 0 ? Math.min(100, Math.round((stats.submitted / planStats.lettersTotal) * 100)) : 0}%` }}
+                        style={{ width: `${userPlan && planStats.resumesTotal > 0 ? Math.min(100, Math.round((applications.length / planStats.resumesTotal) * 100)) : 0}%` }}
                       ></div>
                     </div>
                   </div>

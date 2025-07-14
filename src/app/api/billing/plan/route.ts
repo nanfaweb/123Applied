@@ -53,21 +53,12 @@ export async function GET(_req: NextRequest) {
       return NextResponse.json({ plan: null });
     }
 
-    // Calculate totals (remaining + used)
-    const lettersUsed = activePlan.letters_remaining === 0 ? 
-      (activePlan.plans?.letter_limit || 0) : 
-      (activePlan.plans?.letter_limit || 0) - activePlan.letters_remaining;
-    
-    const resumesUsed = activePlan.resumes_remaining === 0 ? 
-      (activePlan.plans?.resume_limit || 0) : 
-      (activePlan.plans?.resume_limit || 0) - activePlan.resumes_remaining;
-
     const plan = {
       name: activePlan.plans?.name || 'Unknown Plan',
       lettersRemaining: activePlan.letters_remaining || 0,
-      totalLetters: (activePlan.letters_remaining || 0) + lettersUsed,
+      totalLetters: activePlan.plans?.letter_limit || 0,
       resumesRemaining: activePlan.resumes_remaining || 0,
-      totalResumes: (activePlan.resumes_remaining || 0) + resumesUsed,
+      totalResumes: activePlan.plans?.resume_limit || 0,
       cardBrand: 'VISA', // Default values - can be enhanced later
       cardLast4: '1234',
     };
