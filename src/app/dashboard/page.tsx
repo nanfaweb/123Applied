@@ -147,7 +147,10 @@ const Dashboard = () => {
         .select('file_url')
         .eq('user_id', user.id)
         .single();
-      if (data && data.file_url) setResumeUrl(data.file_url);
+      if (data && data.file_url) {
+        const { data: signedUrlData } = await supabase.storage.from('resumes').createSignedUrl(data.file_url, 60 * 60); // 1 hour expiry
+        setResumeUrl(signedUrlData?.signedUrl || data.file_url);
+      }
     };
     if (user) fetchResume();
   }, [user]);
@@ -339,19 +342,16 @@ const Dashboard = () => {
       setResumeError('Failed to upload file: ' + uploadError.message);
       return;
     }
-    // Get public URL
-    const { data: publicUrlData } = supabase.storage.from('resumes').getPublicUrl(filePath);
-    const publicUrl = publicUrlData?.publicUrl || '';
-    // Upsert file_url in docs table
+    // Store only the file path in docs table
     const { error: upsertError } = await supabase
       .from('docs')
-      .upsert({ user_id: user.id, file_url: publicUrl }, { onConflict: 'user_id' });
+      .upsert({ user_id: user.id, file_url: filePath, uploaded_at: new Date().toISOString() }, { onConflict: 'user_id' });
     setResumeLoading(false);
     if (upsertError) {
       setResumeError('Failed to save file URL.');
     } else {
       setResumeSuccess(true);
-      setResumeUrl(publicUrl);
+      setResumeUrl(filePath);
       setSelectedFile(file);
     }
   };
@@ -367,7 +367,7 @@ const Dashboard = () => {
     setLinkedInSuccess(false);
     const { error } = await supabase
       .from('docs')
-      .upsert({ user_id: user.id, external_url: linkedInUrl }, { onConflict: 'user_id' });
+      .upsert({ user_id: user.id, external_url: linkedInUrl, uploaded_at: new Date().toISOString() }, { onConflict: 'user_id' });
     setLinkedInLoading(false);
     if (error) {
       setLinkedInError('Failed to save LinkedIn URL.');
@@ -676,7 +676,9 @@ return (
                                 <p className="text-xs text-blue-600">
                                   Current: {(() => {
                                     try {
-                                      const urlParts = resumeUrl.split('/');
+                                      // If resumeUrl is a signed URL, extract the file name from the path before the ?
+                                      const urlNoQuery = resumeUrl.split('?')[0];
+                                      const urlParts = urlNoQuery.split('/');
                                       const rawName = urlParts[urlParts.length - 1].split('_').slice(1).join('_');
                                       return decodeURIComponent(rawName);
                                     } catch {

@@ -414,8 +414,8 @@ const AdminPortal = () => {
           if (doc.file_url) {
             let url = doc.file_url;
             if (!isFullUrl(doc.file_url)) {
-              const { data: publicUrlData } = supabase.storage.from('resumes').getPublicUrl(doc.file_url);
-              url = publicUrlData?.publicUrl || doc.file_url;
+              const { data: signedUrlData } = await supabase.storage.from('resumes').createSignedUrl(doc.file_url, 60 * 60); // 1 hour expiry
+              url = signedUrlData?.signedUrl || doc.file_url;
             }
             documents.push({ type: 'resume', name: 'Resume.pdf', uploadDate: doc.uploaded_at?.split('T')[0], url });
           }
@@ -510,7 +510,14 @@ const AdminPortal = () => {
                 Admin Portal
               </h1>
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center gap-4">
+              <a
+                href="/admin/generate"
+                className="text-white font-semibold hover:underline text-base"
+                style={{ textDecorationThickness: 2 }}
+              >
+                Generate
+              </a>
               <div className="relative" ref={profileMenuRef}>
                 <button
                   className="w-9 h-9 bg-white border border-slate-300 rounded-full flex items-center justify-center shadow-sm hover:border-pink-400 hover:shadow-lg transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-pink-300"
@@ -635,7 +642,7 @@ const AdminPortal = () => {
                             <p className="text-xs text-slate-500">{doc.uploadDate}</p>
                           </div>
                         </div>
-                        <a href={doc.url || ''} download className="px-3 py-1 bg-pink-500 text-white rounded text-xs hover:bg-pink-600 text-center w-20 inline-block cursor-pointer">Download</a>
+                        <a href={doc.url || ''} target="_blank" rel="noopener noreferrer" className="px-3 py-1 bg-pink-500 text-white rounded text-xs hover:bg-pink-600 text-center w-20 inline-block cursor-pointer">Download</a>
                       </div>
                     ))
                   ) : (
