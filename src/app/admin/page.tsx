@@ -511,13 +511,6 @@ const AdminPortal = () => {
               </h1>
             </div>
             <div className="flex items-center gap-4">
-              <a
-                href="/admin/generate"
-                className="text-white font-semibold hover:underline text-base"
-                style={{ textDecorationThickness: 2 }}
-              >
-                Generate
-              </a>
               <div className="relative" ref={profileMenuRef}>
                 <button
                   className="w-9 h-9 bg-white border border-slate-300 rounded-full flex items-center justify-center shadow-sm hover:border-pink-400 hover:shadow-lg transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-pink-300"
